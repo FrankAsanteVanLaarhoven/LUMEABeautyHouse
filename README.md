@@ -69,23 +69,67 @@ Seat limits: starter **2** · growth **5** · enterprise **25**
 
 CSV columns: `name,slug,category,tagline,description,price,stock,sku,variant,shade_hex,image,badges,featured,active`
 
-## Run
+## Run locally
 
 ```bash
-cd lumea
 npm install
-npm run dev
+cp .env.example .env.local   # optional Stripe / Resend keys
+npm run dev                  # http://localhost:3006
 ```
-
-Open [http://localhost:3006](http://localhost:3006)
 
 | Surface | URL |
 |---------|-----|
 | Storefront | `/` |
-| Shop | `/shop` |
+| Match quiz · recover bag | `/quiz` · `/recover` |
+| Checkout (+ Stripe) | `/checkout` |
+| Brand portal · billing | `/brand` · `/brand/billing` |
 | Admin ops | `/admin` |
-| Fulfillment | `/admin/fulfillment` |
-| Inventory | `/admin/inventory` |
+
+## Stripe
+
+Without keys the app stays in **demo mode** (local orders + demo SaaS activate).
+
+With keys:
+
+| Flow | Endpoint |
+|------|----------|
+| Consumer Checkout | `POST /api/checkout/stripe` → Stripe Hosted Checkout |
+| Success finalize | `/checkout/success` + `POST /api/checkout/complete` |
+| Brand SaaS subscription | `POST /api/brands/me/billing/stripe` |
+| Webhooks | `POST /api/stripe/webhook` |
+| Status | `GET /api/stripe/status` |
+
+```bash
+# .env.local
+STRIPE_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+NEXT_PUBLIC_APP_URL=http://localhost:3006
+```
+
+Local webhooks:
+
+```bash
+stripe listen --forward-to localhost:3006/api/stripe/webhook
+```
+
+## Deploy (Vercel)
+
+1. Push to GitHub (`LUMEABeautyHouse`)
+2. **Import project** in [Vercel](https://vercel.com/new) → framework Next.js
+3. Set env vars from `.env.example` (at least `NEXT_PUBLIC_APP_URL` = your production URL)
+4. Deploy
+5. Stripe Dashboard → Webhooks → `https://YOUR_DOMAIN/api/stripe/webhook`  
+   Events: `checkout.session.completed`
+6. Optional: Resend for real email (`RESEND_API_KEY`, `EMAIL_FROM`)
+
+```bash
+# CLI alternative
+npx vercel
+npx vercel --prod
+```
+
+**Note:** File-backed `data/*.json` works for demos on a single instance. For production scale, migrate to Postgres/Supabase and durable object storage.
 
 ## Project layout
 

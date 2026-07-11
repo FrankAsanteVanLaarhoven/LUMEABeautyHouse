@@ -107,12 +107,12 @@ export function AbandonedCartCapture() {
       ) : (
         <>
           <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-champagne">
-            Still thinking?
+            Don&apos;t lose your edit
           </p>
-          <h3 className="mt-1 font-display text-2xl">Save your bag</h3>
+          <h3 className="mt-1 font-display text-2xl">Email me my bag</h3>
           <p className="mt-1 text-sm text-muted">
-            {items.length} item{items.length > 1 ? "s" : ""} waiting · free ship
-            from $75. Email a restore link + first-order perk.
+            {items.length} piece{items.length > 1 ? "s" : ""} held for 7 days ·
+            free ship $75+ · restore link + <strong>WELCOME10</strong>.
           </p>
           <form onSubmit={onSubmit} className="mt-4 flex gap-2">
             <input

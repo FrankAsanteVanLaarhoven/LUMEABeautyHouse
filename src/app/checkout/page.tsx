@@ -1,24 +1,38 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { FormEvent, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 import { useCart } from "@/store/cart";
 import { useProfile } from "@/store/profile";
 import { useT } from "@/lib/i18n/useT";
 
-export default function CheckoutPage() {
+function CheckoutInner() {
   const { t, formatPrice } = useT();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { items, subtotal, discount, promoCode, setPromo, clear } = useCart();
   const profile = useProfile((s) => s.profile);
   const spendWallet = useProfile((s) => s.spendWallet);
   const [promoInput, setPromoInput] = useState(promoCode || "");
   const [promoError, setPromoError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [stripeLoading, setStripeLoading] = useState(false);
   const [error, setError] = useState("");
   const [payWithWallet, setPayWithWallet] = useState(false);
+  const [stripeOn, setStripeOn] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/stripe/status")
+      .then((r) => r.json())
+      .then((d) => setStripeOn(Boolean(d.enabled)))
+      .catch(() => {});
+    if (searchParams.get("cancelled") === "1") {
+      setError("Stripe payment cancelled — your bag is still here.");
+    }
+  }, [searchParams]);
 
   const sub = subtotal();
   const afterDiscount = Math.max(0, sub - discount);
@@ -53,12 +67,8 @@ export default function CheckoutPage() {
     setPromo(data.code, data.discount);
   }
 
-  async function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    const fd = new FormData(e.currentTarget);
-    const shippingAddress = {
+  function shippingFromForm(fd: FormData) {
+    return {
       firstName: String(fd.get("firstName")),
       lastName: String(fd.get("lastName")),
       line1: String(fd.get("line1")),
@@ -69,6 +79,14 @@ export default function CheckoutPage() {
       country: String(fd.get("country") || "US"),
       phone: String(fd.get("phone") || ""),
     };
+  }
+
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    const fd = new FormData(e.currentTarget);
+    const shippingAddress = shippingFromForm(fd);
 
     try {
       if (payWithWallet) {
@@ -103,6 +121,62 @@ export default function CheckoutPage() {
       setError(err instanceof Error ? err.message : "Checkout failed");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function payWithStripe(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setStripeLoading(true);
+    setError("");
+    const form = e.currentTarget.closest("form") || document.querySelector("form");
+    if (!form) {
+      setError("Form not ready");
+      setStripeLoading(false);
+      return;
+    }
+    const fd = new FormData(form as HTMLFormElement);
+    const email = String(fd.get("email") || profile?.email || "");
+    if (!email) {
+      setError("Email is required for Stripe Checkout");
+      setStripeLoading(false);
+      return;
+    }
+    try {
+      const res = await fetch("/api/checkout/stripe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          shippingAddress: shippingFromForm(fd),
+          promoCode: promoCode || undefined,
+          notes: fd.get("notes"),
+          items: items.map((i) => ({
+            productId: i.productId,
+            variantId: i.variantId,
+            name: i.name,
+            variantName: i.variantName,
+            sku: i.sku,
+            quantity: i.quantity,
+            unitPrice: i.price,
+            image: i.image,
+          })),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(
+          data.message || data.error || "Stripe Checkout unavailable"
+        );
+      }
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
+      throw new Error("No Stripe URL returned");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Stripe failed");
+    } finally {
+      setStripeLoading(false);
     }
   }
 
@@ -286,14 +360,58 @@ export default function CheckoutPage() {
 
           {error && <p className="mt-4 text-sm text-danger">{error}</p>}
 
-          <button type="submit" disabled={loading} className="btn-primary mt-6 w-full">
-            {loading ? t("checkout.placing") : t("checkout.pay", { amount: formatPrice(total) })}
+          {stripeOn && !payWithWallet && (
+            <button
+              type="button"
+              disabled={stripeLoading || loading}
+              onClick={(ev) => {
+                const form = (ev.target as HTMLElement).closest("form");
+                if (form) {
+                  payWithStripe({
+                    preventDefault: () => {},
+                    currentTarget: form,
+                  } as unknown as FormEvent<HTMLFormElement>);
+                }
+              }}
+              className="mt-6 w-full bg-[#635bff] px-6 py-3.5 text-[11px] font-medium uppercase tracking-[0.16em] text-white disabled:opacity-50"
+            >
+              {stripeLoading
+                ? "Redirecting to Stripe…"
+                : `Pay ${formatPrice(total)} with Stripe`}
+            </button>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading || stripeLoading}
+            className="btn-primary mt-3 w-full"
+          >
+            {loading
+              ? t("checkout.placing")
+              : stripeOn
+                ? `Pay without Stripe · ${formatPrice(total)}`
+                : t("checkout.pay", { amount: formatPrice(total) })}
           </button>
           <p className="mt-3 text-center text-[10px] text-muted">
-            Try LUME15 · LUME25 · WELCOME10 · NYMA15 · COILS20
+            {stripeOn
+              ? "Secure card payments via Stripe Checkout"
+              : "Demo checkout · add STRIPE_SECRET_KEY for live cards"}
+          </p>
+          <p className="mt-2 text-center text-[10px] text-muted">
+            Codes LUME15 · LUME25 · WELCOME10 · NYMA15 · COILS20
           </p>
         </aside>
       </form>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense
+      fallback={<div className="p-16 text-center text-muted">Loading checkout…</div>}
+    >
+      <CheckoutInner />
+    </Suspense>
   );
 }
