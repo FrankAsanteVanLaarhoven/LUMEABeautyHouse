@@ -29,12 +29,21 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "https://lumea-beige.vercel.app"
+  ),
   title: {
     default: "LUMÉA — Beauty Without Boundaries",
     template: "%s · LUMÉA",
   },
   description:
-    "LUMÉA is a next-generation beauty house. Inclusive shades, clinical skincare, virtual try-on, and quiet luxury for every face.",
+    "LUMÉA is an inclusive luxury beauty house. Fifty foundation shades, clinical skincare, live Mirror Studio try-on, and hair rituals for every texture.",
+  applicationName: "LUMÉA",
+  authors: [{ name: "LUMÉA Beauty House" }],
+  creator: "LUMÉA Beauty House",
+  publisher: "LUMÉA Beauty House",
+  // Explicitly strip framework generator branding from HTML
+  generator: "LUMÉA",
   keywords: [
     "LUMÉA",
     "inclusive beauty",
@@ -42,17 +51,31 @@ export const metadata: Metadata = {
     "luxury makeup",
     "skincare",
     "foundation shades",
+    "hair care",
     "lip oil",
   ],
   icons: {
-    icon: "/icons/lumea-mark.svg",
-    apple: "/icons/lumea-mark.svg",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icons/lumea-mark.svg", type: "image/svg+xml" },
+      { url: "/icon", type: "image/png", sizes: "64x64" },
+    ],
+    apple: [{ url: "/apple-icon", type: "image/png", sizes: "180x180" }],
+    shortcut: ["/favicon.svg"],
   },
   openGraph: {
     title: "LUMÉA — Beauty Without Boundaries",
-    description: "Light for every face. Inclusive luxury beauty with live try-on.",
+    description:
+      "Light for every face. Inclusive luxury beauty with live Mirror Studio try-on.",
     type: "website",
     siteName: "LUMÉA",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LUMÉA — Beauty Without Boundaries",
+    description:
+      "Light for every face. Inclusive luxury beauty with live Mirror Studio try-on.",
   },
   robots: { index: true, follow: true },
 };

@@ -70,7 +70,7 @@ export default function PlatformPage() {
         </div>
       </section>
 
-      {/* Like SpreeAI pitch */}
+      {/* Brand platform pitch */}
       <section className="mx-auto max-w-[1440px] px-5 py-20 md:px-8">
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
           <div>
