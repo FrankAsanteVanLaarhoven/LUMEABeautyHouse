@@ -105,6 +105,78 @@ export default function PlatformPage() {
         </div>
       </section>
 
+      {/* SaaS pricing */}
+      <section className="border-y border-line py-20">
+        <div className="mx-auto max-w-[1440px] px-5 md:px-8">
+          <p className="text-[10px] uppercase tracking-[0.24em] text-muted">
+            Brand SaaS
+          </p>
+          <h2 className="mt-3 font-display text-4xl md:text-5xl">
+            Plans that scale with your house
+          </h2>
+          <p className="mt-3 max-w-xl text-sm text-muted">
+            Seats, product caps, custom domains, and Mirror Studio skins —
+            billed monthly or yearly. Demo checkout in the brand portal.
+          </p>
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            {[
+              {
+                name: "Starter",
+                price: "$49",
+                body: "2 seats · 50 products · /b/you storefront · studio skin",
+              },
+              {
+                name: "Growth",
+                price: "$149",
+                body: "5 seats · 500 products · custom domain + DNS verify · analytics",
+                highlight: true,
+              },
+              {
+                name: "Enterprise",
+                price: "$499",
+                body: "25 seats · unlimited SKUs · priority support · multi-brand ops",
+              },
+            ].map((p) => (
+              <div
+                key={p.name}
+                className={`border p-6 ${
+                  p.highlight
+                    ? "border-ink bg-ink text-ivory"
+                    : "border-line bg-surface"
+                }`}
+              >
+                <p
+                  className={`text-[10px] uppercase tracking-[0.16em] ${
+                    p.highlight ? "text-champagne" : "text-muted"
+                  }`}
+                >
+                  {p.name}
+                </p>
+                <p className="mt-2 font-display text-4xl">
+                  {p.price}
+                  <span className="text-base opacity-60">/mo</span>
+                </p>
+                <p
+                  className={`mt-3 text-sm ${
+                    p.highlight ? "text-ivory/70" : "text-muted"
+                  }`}
+                >
+                  {p.body}
+                </p>
+                <Link
+                  href="/brand"
+                  className={`mt-6 inline-block text-[11px] uppercase tracking-[0.14em] underline underline-offset-4 ${
+                    p.highlight ? "text-champagne" : ""
+                  }`}
+                >
+                  Start free trial →
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Modules */}
       <section className="bg-ivory-deep py-20">
         <div className="mx-auto max-w-[1440px] px-5 md:px-8">

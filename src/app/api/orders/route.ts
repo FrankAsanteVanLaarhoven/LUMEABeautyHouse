@@ -75,6 +75,23 @@ export async function POST(req: NextRequest) {
       notes: body.notes,
     });
 
+    try {
+      const { sendEmail, templates } = await import("@/lib/email");
+      const msg = templates().order({
+        orderNumber: order.orderNumber,
+        total: order.total,
+        email: order.email,
+      });
+      await sendEmail({
+        to: order.email,
+        ...msg,
+        template: "order",
+        meta: { orderId: order.id, orderNumber: order.orderNumber },
+      });
+    } catch {
+      /* non-blocking */
+    }
+
     return NextResponse.json({ order }, { status: 201 });
   } catch (e) {
     return NextResponse.json(

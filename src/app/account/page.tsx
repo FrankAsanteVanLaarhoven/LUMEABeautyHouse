@@ -54,6 +54,7 @@ function AccountInner() {
   const setSkinProfile = usePrefs((s) => s.setSkinProfile);
   const liked = usePrefs((s) => s.likedProducts);
   const loyaltyPoints = useBrowse((s) => s.loyaltyPoints);
+  const shadeMatches = useBrowse((s) => s.shadeMatches);
   const glowTier = tierForPoints(loyaltyPoints);
 
   useEffect(() => {
@@ -502,6 +503,53 @@ function AccountInner() {
               </div>
             </div>
           </section>
+
+          {/* Saved shade matches */}
+          {shadeMatches.length > 0 && (
+            <section className="mt-14">
+              <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
+                Your shade matches
+              </h2>
+              <ul className="mt-4 space-y-2">
+                {shadeMatches.map((m) => (
+                  <li
+                    key={m.shadeId + m.matchedAt}
+                    className="flex flex-wrap items-center gap-3 border border-line bg-surface px-4 py-3"
+                  >
+                    <span
+                      className="h-8 w-8 rounded-full border border-line"
+                      style={{ background: m.hex }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium">
+                        {m.name}{" "}
+                        {m.score ? (
+                          <span className="text-xs text-champagne">
+                            {m.score}%
+                          </span>
+                        ) : null}
+                      </p>
+                      <p className="text-xs text-muted">
+                        {m.productName} · {m.depthLabel} / {m.undertone}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/product/${m.productSlug}`}
+                      className="text-[10px] uppercase tracking-[0.12em] underline"
+                    >
+                      Shop
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/studio"
+                className="mt-3 inline-block text-[11px] uppercase tracking-[0.12em] text-champagne"
+              >
+                Re-match in studio →
+              </Link>
+            </section>
+          )}
 
           {/* Wallet */}
           <section id="wallet" className="mt-14 scroll-mt-36">

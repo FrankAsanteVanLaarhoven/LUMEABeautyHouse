@@ -147,20 +147,95 @@ export default function BrandWhitelabelPage() {
           </div>
           <div>
             <label className="mb-1 block text-[10px] uppercase tracking-[0.12em] text-[var(--text-dim)]">
-              Custom domain
+              Custom domain{" "}
+              <span className="text-champagne">
+                (Growth+) · {wl.domainStatus || "none"}
+              </span>
             </label>
             <input
               value={wl.customDomain}
-              onChange={(e) => setWl({ ...wl, customDomain: e.target.value })}
+              onChange={(e) =>
+                setWl({
+                  ...wl,
+                  customDomain: e.target.value,
+                  domainStatus: e.target.value ? "pending" : "none",
+                })
+              }
               placeholder="shop.yourbrand.com"
               className="w-full border border-[var(--border)] bg-[var(--panel-2)] px-3 py-2 font-mono text-sm text-[var(--text)]"
             />
             <p className="mt-2 text-xs text-[var(--text-dim)]">
-              Point a CNAME to{" "}
-              <code className="text-champagne">edge.lumea.beauty</code> then save
-              here. Resolver API:{" "}
-              <code className="text-champagne">/api/brands/resolve?host=</code>
+              1. CNAME →{" "}
+              <code className="text-champagne">
+                {wl.dnsTarget || "edge.lumea.beauty"}
+              </code>
+              <br />
+              2. Save white-label · 3. Verify DNS (demo always passes on Growth+)
+              <br />
+              Resolver:{" "}
+              <code className="text-champagne">
+                /api/brands/resolve?host={wl.customDomain || "shop.brand.com"}
+              </code>
             </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="border border-[var(--border)] px-3 py-2 text-[10px] uppercase tracking-[0.12em] text-[var(--text)]"
+                onClick={async () => {
+                  setError("");
+                  setMsg("");
+                  try {
+                    const res = await fetch("/api/brands/me/domain", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        action: "set",
+                        customDomain: wl.customDomain,
+                      }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || "Failed");
+                    setWl(data.brand.whiteLabel);
+                    await reload();
+                    setMsg(data.message);
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : "Failed");
+                  }
+                }}
+              >
+                Save domain
+              </button>
+              <button
+                type="button"
+                className="bg-champagne px-3 py-2 text-[10px] uppercase tracking-[0.12em] text-ink"
+                onClick={async () => {
+                  setError("");
+                  setMsg("");
+                  try {
+                    const res = await fetch("/api/brands/me/domain", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ action: "verify" }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || "Verify failed");
+                    setWl(data.brand.whiteLabel);
+                    await reload();
+                    setMsg("Domain verified · confirmation email sent");
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : "Failed");
+                  }
+                }}
+              >
+                Verify DNS
+              </button>
+              <Link
+                href="/brand/billing"
+                className="px-3 py-2 text-[10px] uppercase tracking-[0.12em] text-champagne"
+              >
+                Upgrade for domains →
+              </Link>
+            </div>
           </div>
 
           <h2 className="pt-2 text-sm font-medium text-[var(--text)]">Theme</h2>

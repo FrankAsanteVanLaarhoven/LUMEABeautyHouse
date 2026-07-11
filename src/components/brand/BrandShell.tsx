@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Building2,
+  CreditCard,
   Globe2,
   LayoutDashboard,
   LogOut,
@@ -58,6 +59,12 @@ const allLinks = [
     label: "Team seats",
     icon: Users,
     perm: "team:read" as const,
+  },
+  {
+    href: "/brand/billing",
+    label: "Billing",
+    icon: CreditCard,
+    perm: "dashboard:read" as const,
   },
 ];
 

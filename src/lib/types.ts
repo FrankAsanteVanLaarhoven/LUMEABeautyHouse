@@ -54,6 +54,8 @@ export interface Product {
 export type BrandPlan = "starter" | "growth" | "enterprise";
 export type BrandStatus = "pending" | "active" | "suspended";
 
+export type DomainStatus = "none" | "pending" | "verified" | "failed";
+
 export interface WhiteLabelConfig {
   /** Public storefront path slug: /b/{subdomain} */
   subdomain: string;
@@ -68,6 +70,11 @@ export interface WhiteLabelConfig {
   faviconUrl: string;
   supportEmail: string;
   enabled: boolean;
+  /** Custom domain verification lifecycle */
+  domainStatus?: DomainStatus;
+  domainVerifiedAt?: string;
+  /** CNAME target brands should point to */
+  dnsTarget?: string;
 }
 
 /** Per-brand Mirror Studio visual skin */
@@ -119,6 +126,33 @@ export interface BrandMember {
   updatedAt: string;
 }
 
+export type BillingStatus = "trial" | "active" | "past_due" | "cancelled";
+export type BillingInterval = "monthly" | "yearly";
+
+export interface BrandInvoice {
+  id: string;
+  number: string;
+  amount: number;
+  currency: string;
+  status: "paid" | "open" | "void";
+  plan: BrandPlan;
+  interval: BillingInterval;
+  createdAt: string;
+  paidAt?: string;
+}
+
+export interface BrandBilling {
+  status: BillingStatus;
+  interval: BillingInterval;
+  trialEndsAt?: string;
+  currentPeriodEnd?: string;
+  lastPaymentAt?: string;
+  lastAmount?: number;
+  /** Mock Stripe customer id */
+  customerId?: string;
+  invoices: BrandInvoice[];
+}
+
 export interface Brand {
   id: string;
   slug: string;
@@ -136,6 +170,7 @@ export interface Brand {
   seatLimit: number;
   members: BrandMember[];
   productCount: number;
+  billing?: BrandBilling;
   createdAt: string;
   updatedAt: string;
 }

@@ -37,6 +37,20 @@ function defaultWhiteLabel(name: string, subdomain: string): WhiteLabelConfig {
     faviconUrl: "/icons/lumea-mark.svg",
     supportEmail: "",
     enabled: true,
+    domainStatus: "none",
+    dnsTarget: "edge.lumea.beauty",
+  };
+}
+
+function defaultBilling(plan: BrandPlan = "starter"): import("./types").BrandBilling {
+  const trialEnd = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+  return {
+    status: "trial",
+    interval: "monthly",
+    trialEndsAt: trialEnd,
+    currentPeriodEnd: trialEnd,
+    customerId: `cus_demo_${nanoid(8)}`,
+    invoices: [],
   };
 }
 
@@ -89,7 +103,14 @@ function makeOwnerMember(
 function migrateBrand(b: Brand): Brand {
   const plan = b.plan || "starter";
   const seatLimit = b.seatLimit || PLAN_SEAT_LIMITS[plan];
-  const whiteLabel = b.whiteLabel || defaultWhiteLabel(b.name, b.slug);
+  const whiteLabel = {
+    ...defaultWhiteLabel(b.name, b.slug),
+    ...(b.whiteLabel || {}),
+    dnsTarget: b.whiteLabel?.dnsTarget || "edge.lumea.beauty",
+    domainStatus:
+      b.whiteLabel?.domainStatus ||
+      (b.whiteLabel?.customDomain ? "pending" : "none"),
+  };
   const studioSkin =
     b.studioSkin || defaultStudioSkin(b.name, whiteLabel);
   let members = Array.isArray(b.members) ? b.members : [];
@@ -99,12 +120,14 @@ function migrateBrand(b: Brand): Brand {
       ...members,
     ];
   }
+  const billing = b.billing || defaultBilling(plan);
   return {
     ...b,
     whiteLabel,
     studioSkin,
     seatLimit,
     members,
+    billing,
   };
 }
 
@@ -465,6 +488,7 @@ export async function registerBrand(input: {
     seatLimit: PLAN_SEAT_LIMITS[plan],
     members: [owner],
     productCount: 0,
+    billing: defaultBilling(plan),
     createdAt: now,
     updatedAt: now,
   };
@@ -567,6 +591,7 @@ export async function updateBrand(
   > & {
     whiteLabel?: Partial<WhiteLabelConfig>;
     studioSkin?: Partial<StudioSkinConfig>;
+    billing?: Partial<import("./types").BrandBilling>;
   }
 ) {
   const db = await ensureBrandDb();
@@ -582,16 +607,29 @@ export async function updateBrand(
     patch.whiteLabel.subdomain = sub;
   }
 
-  if (patch.whiteLabel?.customDomain) {
+  if (patch.whiteLabel?.customDomain !== undefined) {
     const domain = patch.whiteLabel.customDomain.toLowerCase().trim();
-    const clash = db.brands.find(
-      (b) =>
-        b.id !== brandId &&
-        b.whiteLabel.customDomain &&
-        b.whiteLabel.customDomain.toLowerCase() === domain
-    );
-    if (clash) throw new Error("Custom domain already in use");
-    patch.whiteLabel.customDomain = domain;
+    if (domain) {
+      const clash = db.brands.find(
+        (b) =>
+          b.id !== brandId &&
+          b.whiteLabel.customDomain &&
+          b.whiteLabel.customDomain.toLowerCase() === domain
+      );
+      if (clash) throw new Error("Custom domain already in use");
+      // Growth+ required for custom domain
+      const plan = patch.plan || db.brands[idx].plan;
+      if (!["growth", "enterprise"].includes(plan)) {
+        throw new Error("Custom domains require Growth or Enterprise plan");
+      }
+      patch.whiteLabel.customDomain = domain;
+      if (!patch.whiteLabel.domainStatus) {
+        patch.whiteLabel.domainStatus = "pending";
+      }
+    } else {
+      patch.whiteLabel.customDomain = "";
+      patch.whiteLabel.domainStatus = "none";
+    }
   }
 
   if (patch.plan) {
@@ -607,10 +645,131 @@ export async function updateBrand(
     studioSkin: patch.studioSkin
       ? { ...db.brands[idx].studioSkin, ...patch.studioSkin }
       : db.brands[idx].studioSkin,
+    billing: patch.billing
+      ? {
+          ...(db.brands[idx].billing || defaultBilling(db.brands[idx].plan)),
+          ...patch.billing,
+          invoices:
+            patch.billing.invoices ??
+            db.brands[idx].billing?.invoices ??
+            [],
+        }
+      : db.brands[idx].billing || defaultBilling(db.brands[idx].plan),
     updatedAt: new Date().toISOString(),
   };
   await saveBrandDb(db);
   return publicBrand(db.brands[idx]);
+}
+
+/** Demo billing checkout — upgrades plan, records invoice, extends period */
+export async function processBrandPayment(
+  brandId: string,
+  input: {
+    plan: BrandPlan;
+    interval: "monthly" | "yearly";
+    cardLast4?: string;
+  }
+) {
+  const { PLAN_DEFS, planPrice } = await import("./plans");
+  const { sendEmail, templates } = await import("./email");
+  const db = await ensureBrandDb();
+  const idx = db.brands.findIndex((b) => b.id === brandId);
+  if (idx === -1) throw new Error("Brand not found");
+  const brand = db.brands[idx];
+
+  const amount = planPrice(input.plan, input.interval);
+  const now = new Date();
+  const periodMs =
+    input.interval === "yearly"
+      ? 365 * 24 * 60 * 60 * 1000
+      : 30 * 24 * 60 * 60 * 1000;
+  const periodEnd = new Date(now.getTime() + periodMs).toISOString();
+  const invoice: import("./types").BrandInvoice = {
+    id: nanoid(10),
+    number: `INV-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}-${nanoid(5).toUpperCase()}`,
+    amount,
+    currency: "USD",
+    status: "paid",
+    plan: input.plan,
+    interval: input.interval,
+    createdAt: now.toISOString(),
+    paidAt: now.toISOString(),
+  };
+
+  const billing = brand.billing || defaultBilling(input.plan);
+  billing.status = "active";
+  billing.interval = input.interval;
+  billing.currentPeriodEnd = periodEnd;
+  billing.lastPaymentAt = now.toISOString();
+  billing.lastAmount = amount;
+  billing.invoices = [invoice, ...(billing.invoices || [])].slice(0, 40);
+
+  brand.plan = input.plan;
+  brand.seatLimit = PLAN_SEAT_LIMITS[input.plan];
+  brand.billing = billing;
+  brand.updatedAt = now.toISOString();
+  // Custom domain feature gate clear if downgraded later handled on save
+  if (!PLAN_DEFS[input.plan].customDomain && brand.whiteLabel.customDomain) {
+    brand.whiteLabel = {
+      ...brand.whiteLabel,
+      customDomain: "",
+      domainStatus: "none",
+    };
+  }
+
+  await saveBrandDb(db);
+
+  const tpl = templates().brandReceipt({
+    brandName: brand.name,
+    plan: PLAN_DEFS[input.plan].name,
+    amount,
+    interval: input.interval,
+    invoiceNumber: invoice.number,
+  });
+  await sendEmail({
+    to: brand.email,
+    ...tpl,
+    template: "brand_receipt",
+    meta: { brandId, invoiceId: invoice.id, cardLast4: input.cardLast4 },
+  });
+
+  return { brand: publicBrand(brand), invoice };
+}
+
+export async function verifyBrandDomain(brandId: string) {
+  const { sendEmail, templates } = await import("./email");
+  const db = await ensureBrandDb();
+  const idx = db.brands.findIndex((b) => b.id === brandId);
+  if (idx === -1) throw new Error("Brand not found");
+  const brand = db.brands[idx];
+  if (!brand.whiteLabel.customDomain) {
+    throw new Error("No custom domain configured");
+  }
+  if (!["growth", "enterprise"].includes(brand.plan)) {
+    throw new Error("Upgrade to Growth to verify custom domains");
+  }
+  // Demo: always succeeds after "DNS check"
+  brand.whiteLabel = {
+    ...brand.whiteLabel,
+    domainStatus: "verified",
+    domainVerifiedAt: new Date().toISOString(),
+    dnsTarget: brand.whiteLabel.dnsTarget || "edge.lumea.beauty",
+  };
+  brand.updatedAt = new Date().toISOString();
+  await saveBrandDb(db);
+
+  const tpl = templates().domainVerify({
+    domain: brand.whiteLabel.customDomain,
+    brandName: brand.name,
+  });
+  await sendEmail({
+    to: brand.email,
+    ...tpl,
+    template: "domain_verify",
+    meta: { brandId, domain: brand.whiteLabel.customDomain },
+  });
+
+  return publicBrand(brand);
 }
 
 // ── Team seats ────────────────────────────────────────────
@@ -679,6 +838,26 @@ export async function inviteTeamMember(
   brand.members.push(member);
   brand.updatedAt = now;
   await saveBrandDb(db);
+
+  try {
+    const { sendEmail, templates, appBaseUrl } = await import("./email");
+    const tpl = templates().brandInvite({
+      brandName: brand.name,
+      email: member.email,
+      tempPassword: member.password,
+      role: member.role,
+      loginUrl: `${appBaseUrl()}/brand`,
+    });
+    await sendEmail({
+      to: member.email,
+      ...tpl,
+      template: "brand_invite",
+      meta: { brandId, memberId: member.id },
+    });
+  } catch {
+    /* non-blocking */
+  }
+
   return {
     member: publicMember(member),
     tempPassword: member.password,
@@ -752,6 +931,16 @@ export async function createBrandProduct(
   brandId: string,
   input: Partial<Product> & { name: string }
 ): Promise<Product> {
+  const brand = await getBrandById(brandId);
+  if (!brand) throw new Error("Brand not found");
+  const { planProductLimit } = await import("./plans");
+  const limit = planProductLimit(brand.plan);
+  const existing = await listBrandProducts(brandId);
+  if (limit > 0 && existing.length >= limit) {
+    throw new Error(
+      `Product limit reached (${limit} on ${brand.plan}). Upgrade plan for more.`
+    );
+  }
   const { upsertProduct } = await import("./db");
   const product = await upsertProduct({
     ...input,

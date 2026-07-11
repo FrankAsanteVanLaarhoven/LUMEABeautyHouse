@@ -28,12 +28,25 @@ export interface LoyaltyEvent {
   at: string;
 }
 
+export interface SavedShadeMatch {
+  shadeId: string;
+  name: string;
+  hex: string;
+  productSlug: string;
+  productName: string;
+  depthLabel: string;
+  undertone: string;
+  score?: number;
+  matchedAt: string;
+}
+
 interface BrowseState {
   recentlyViewed: ViewedProduct[];
   loyaltyPoints: number;
   loyaltyLog: LoyaltyEvent[];
   restockAlerts: RestockAlert[];
   subscribeSave: boolean;
+  shadeMatches: SavedShadeMatch[];
   trackView: (p: Omit<ViewedProduct, "viewedAt">) => void;
   addLoyalty: (pts: number, reason?: string) => void;
   redeemLoyalty: (pts: number, reason?: string) => boolean;
@@ -41,6 +54,8 @@ interface BrowseState {
   addRestockAlert: (a: Omit<RestockAlert, "createdAt">) => void;
   removeRestockAlert: (slug: string) => void;
   setSubscribeSave: (on: boolean) => void;
+  saveShadeMatch: (m: Omit<SavedShadeMatch, "matchedAt">) => void;
+  clearShadeMatches: () => void;
 }
 
 export const useBrowse = create<BrowseState>()(
@@ -51,6 +66,7 @@ export const useBrowse = create<BrowseState>()(
       loyaltyLog: [],
       restockAlerts: [],
       subscribeSave: false,
+      shadeMatches: [],
       trackView: (p) => {
         const rest = get().recentlyViewed.filter((x) => x.id !== p.id);
         set({
@@ -104,6 +120,16 @@ export const useBrowse = create<BrowseState>()(
           restockAlerts: get().restockAlerts.filter((x) => x.slug !== slug),
         }),
       setSubscribeSave: (on) => set({ subscribeSave: on }),
+      saveShadeMatch: (m) => {
+        const rest = get().shadeMatches.filter((x) => x.shadeId !== m.shadeId);
+        set({
+          shadeMatches: [
+            { ...m, matchedAt: new Date().toISOString() },
+            ...rest,
+          ].slice(0, 8),
+        });
+      },
+      clearShadeMatches: () => set({ shadeMatches: [] }),
     }),
     { name: "lumea-browse" }
   )

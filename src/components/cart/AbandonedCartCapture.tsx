@@ -7,7 +7,7 @@ import { X } from "lucide-react";
 
 /**
  * Soft abandon capture: after cart has items and user browses away from
- * cart/checkout for a bit, offer to save bag + email nudge.
+ * cart/checkout, offer email recovery. Sends real outbox email + token.
  */
 export function AbandonedCartCapture() {
   const items = useCart((s) => s.items);
@@ -16,6 +16,7 @@ export function AbandonedCartCapture() {
   const [show, setShow] = useState(false);
   const [email, setEmail] = useState("");
   const [done, setDone] = useState(false);
+  const [recoverUrl, setRecoverUrl] = useState("");
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
@@ -25,17 +26,18 @@ export function AbandonedCartCapture() {
       return;
     }
     const onCheckout =
-      pathname?.startsWith("/checkout") || pathname?.startsWith("/cart");
+      pathname?.startsWith("/checkout") ||
+      pathname?.startsWith("/cart") ||
+      pathname?.startsWith("/recover");
     if (onCheckout) {
       setShow(false);
       return;
     }
 
-    const t = setTimeout(() => setShow(true), 45000);
+    const t = setTimeout(() => setShow(true), 25000);
     return () => clearTimeout(t);
   }, [items.length, pathname, dismissed, done]);
 
-  // Also capture on leave intent (mouse leaves top of viewport)
   useEffect(() => {
     if (dismissed || done || items.length === 0) return;
     const onLeave = (e: MouseEvent) => {
@@ -49,7 +51,7 @@ export function AbandonedCartCapture() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    await fetch("/api/notify", {
+    const res = await fetch("/api/notify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -57,10 +59,23 @@ export function AbandonedCartCapture() {
         email,
         cartValue: subtotal(),
         itemCount: items.length,
+        items: items.map((i) => ({
+          productId: i.productId,
+          variantId: i.variantId,
+          slug: i.slug,
+          name: i.name,
+          variantName: i.variantName,
+          sku: i.sku,
+          price: i.price,
+          image: i.image,
+          quantity: i.quantity,
+          maxStock: i.maxStock,
+        })),
       }),
     });
+    const data = await res.json();
+    if (data.recoverUrl) setRecoverUrl(data.recoverUrl);
     setDone(true);
-    setTimeout(() => setShow(false), 2200);
   }
 
   return (
@@ -76,9 +91,19 @@ export function AbandonedCartCapture() {
         <X size={16} />
       </button>
       {done ? (
-        <p className="pr-6 text-sm text-ok">
-          Bag saved. We&apos;ll email a gentle nudge + WELCOME10 if you need it.
-        </p>
+        <div className="pr-6 text-sm">
+          <p className="text-ok">
+            Recovery email sent with <strong>WELCOME10</strong>.
+          </p>
+          {recoverUrl && (
+            <a
+              href={recoverUrl}
+              className="mt-2 block text-xs text-champagne underline"
+            >
+              Open recovery link (demo)
+            </a>
+          )}
+        </div>
       ) : (
         <>
           <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-champagne">
@@ -87,7 +112,7 @@ export function AbandonedCartCapture() {
           <h3 className="mt-1 font-display text-2xl">Save your bag</h3>
           <p className="mt-1 text-sm text-muted">
             {items.length} item{items.length > 1 ? "s" : ""} waiting · free ship
-            from $75. Get a reminder + first-order perk.
+            from $75. Email a restore link + first-order perk.
           </p>
           <form onSubmit={onSubmit} className="mt-4 flex gap-2">
             <input

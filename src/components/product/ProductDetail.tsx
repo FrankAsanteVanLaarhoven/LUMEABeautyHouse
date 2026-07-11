@@ -39,8 +39,10 @@ export function ProductDetail({ product }: { product: Product }) {
   const restockAlerts = useBrowse((s) => s.restockAlerts);
   const subscribeSave = useBrowse((s) => s.subscribeSave);
   const setSubscribeSave = useBrowse((s) => s.setSubscribeSave);
+  const shadeMatches = useBrowse((s) => s.shadeMatches);
   const reviews = reviewsForProduct(product.slug);
   const completeLook = COMPLETE_LOOK[product.slug] || [];
+  const yourMatch = shadeMatches.find((m) => m.productSlug === product.slug);
 
   useEffect(() => {
     trackView({
@@ -178,6 +180,27 @@ export function ProductDetail({ product }: { product: Product }) {
           {product.name}
         </h1>
         <p className="mt-3 text-muted">{product.tagline}</p>
+        {yourMatch && (
+          <div className="mt-4 flex items-center gap-3 border border-champagne bg-champagne/15 px-3 py-2">
+            <span
+              className="h-7 w-7 rounded-full border border-ink/20"
+              style={{ background: yourMatch.hex }}
+            />
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.14em] text-champagne">
+                Your selfie match
+                {yourMatch.score ? ` · ${yourMatch.score}%` : ""}
+              </p>
+              <p className="text-sm font-medium">{yourMatch.name}</p>
+            </div>
+            <Link
+              href="/studio"
+              className="ml-auto text-[10px] uppercase tracking-[0.12em] underline"
+            >
+              Re-try
+            </Link>
+          </div>
+        )}
         <div className="mt-4 flex items-baseline gap-3">
           <p className="font-display text-3xl">
             {formatPrice(subscribeSave ? subPrice : unitPrice)}

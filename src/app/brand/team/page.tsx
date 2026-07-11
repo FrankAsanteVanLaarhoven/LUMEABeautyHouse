@@ -154,6 +154,14 @@ export default function BrandTeamPage() {
             }}
           />
         </div>
+        {seatsUsed >= seatLimit && (
+          <p className="mt-3 text-xs text-[var(--text-dim)]">
+            Seat limit reached.{" "}
+            <a href="/brand/billing" className="text-champagne hover:underline">
+              Upgrade plan for more seats →
+            </a>
+          </p>
+        )}
       </div>
 
       {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
