@@ -138,6 +138,7 @@ export function TryOnStudio({
   }, [brandSkin]);
   const [analyzing, setAnalyzing] = useState(false);
   const [sampledDepth, setSampledDepth] = useState<number | null>(null);
+  const [matchNote, setMatchNote] = useState("");
   const [hasMedia, setHasMedia] = useState(false);
 
   useEffect(() => {
@@ -386,29 +387,82 @@ export function TryOnStudio({
     brandSkin,
   ]);
 
+  function pickBestShade(
+    targetDepth: number,
+    under: "cool" | "warm" | "neutral" | "olive",
+    kind: Category = "foundation"
+  ) {
+    const pool = SHADES.filter((s) => s.kind === kind);
+    const ranked = pool
+      .map((s) => {
+        const depthScore = 1 - Math.min(1, Math.abs(s.depth - targetDepth) * 2.2);
+        const underScore =
+          s.undertone === under
+            ? 1
+            : under === "neutral" || s.undertone === "neutral"
+              ? 0.75
+              : 0.45;
+        // Prefer hex proximity when sampling RGB-like depth
+        const score = depthScore * 0.7 + underScore * 0.3;
+        return { shade: s, score };
+      })
+      .sort((a, b) => b.score - a.score);
+    return ranked[0]?.shade;
+  }
+
   function analyzeSkin() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     setAnalyzing(true);
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
     const w = canvas.width;
     const h = canvas.height;
     try {
-      const data = ctx.getImageData(
-        Math.floor(w * 0.45),
-        Math.floor(h * 0.35),
-        Math.floor(w * 0.1),
-        Math.floor(h * 0.1)
-      ).data;
-      let r = 0, g = 0, b = 0, n = 0;
-      for (let i = 0; i < data.length; i += 16) {
-        r += data[i]; g += data[i + 1]; b += data[i + 2]; n++;
+      // Multi-zone sample: cheek + forehead (selfie shade match)
+      const zones = [
+        [0.42, 0.36, 0.16, 0.1],
+        [0.45, 0.48, 0.1, 0.08],
+        [0.5, 0.32, 0.08, 0.06],
+      ] as const;
+      let r = 0,
+        g = 0,
+        b = 0,
+        n = 0;
+      for (const [px, py, rw, rh] of zones) {
+        const data = ctx.getImageData(
+          Math.floor(w * px),
+          Math.floor(h * py),
+          Math.max(4, Math.floor(w * rw)),
+          Math.max(4, Math.floor(h * rh))
+        ).data;
+        for (let i = 0; i < data.length; i += 12) {
+          const pr = data[i];
+          const pg = data[i + 1];
+          const pb = data[i + 2];
+          // Skip near-white / near-black pixels (background, hair, shadows)
+          const lumPx = luminance(pr, pg, pb);
+          if (lumPx < 0.08 || lumPx > 0.95) continue;
+          r += pr;
+          g += pg;
+          b += pb;
+          n++;
+        }
       }
-      r /= n; g /= n; b /= n;
+      if (n < 8) throw new Error("no sample");
+      r /= n;
+      g /= n;
+      b /= n;
       const lum = luminance(r, g, b);
       setSampledDepth(lum);
-      const under = r - b > 12 ? "warm" : b - r > 12 ? "cool" : "neutral";
+      const under: "cool" | "warm" | "neutral" | "olive" =
+        r - b > 18
+          ? "warm"
+          : b - r > 18
+            ? "cool"
+            : g > r && g > b
+              ? "olive"
+              : "neutral";
       let depthLabel: (typeof DEPTHS)[number] = "medium";
       if (lum > 0.85) depthLabel = "fair";
       else if (lum > 0.75) depthLabel = "light";
@@ -420,9 +474,20 @@ export function TryOnStudio({
       if (clientProfile) {
         updateClientProfile({ undertone: under, skinDepth: depthLabel });
       }
-      if (matches[0]) setSelected(matches[0].shade);
-    } catch { /* ignore */ }
-    setTimeout(() => setAnalyzing(false), 500);
+      setCategory("foundation");
+      const best = pickBestShade(lum, under, "foundation");
+      if (best) {
+        setSelected(best);
+        setMatchNote(
+          `Selfie match · ${depthLabel} ${under} → ${best.name} (${best.productName})`
+        );
+      } else {
+        setMatchNote(`Profile set · ${depthLabel} / ${under}`);
+      }
+    } catch {
+      setMatchNote("Could not sample — try brighter light on cheeks.");
+    }
+    setTimeout(() => setAnalyzing(false), 450);
   }
 
   function onFile(file: File) {
@@ -446,6 +511,8 @@ export function TryOnStudio({
       img.onload = () => {
         stillRef.current = img;
         setHasMedia(true);
+        // Auto shade-match shortly after selfie loads
+        setTimeout(() => analyzeSkin(), 350);
       };
       img.src = url;
     }
@@ -752,6 +819,11 @@ export function TryOnStudio({
                   }}
                 />
               </div>
+              {matchNote && (
+                <p className="mt-3 border border-champagne/40 bg-champagne/15 px-3 py-2 text-center text-xs text-ink">
+                  {matchNote}
+                </p>
+              )}
               {(isWhite || isBrandLook) && (
                 <p
                   className="mt-3 text-center text-[10px] uppercase tracking-[0.2em] text-muted"

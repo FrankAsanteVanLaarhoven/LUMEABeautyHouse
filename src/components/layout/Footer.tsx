@@ -31,6 +31,19 @@ export function Footer() {
       ],
     },
     {
+      title: "Discover",
+      links: [
+        { href: "/quiz", label: t("nav.quiz") },
+        { href: "/routines", label: t("nav.routines") },
+        { href: "/concerns", label: t("nav.concerns") },
+        { href: "/gifts", label: t("nav.gifts") },
+        { href: "/glow", label: t("nav.glow") },
+        { href: "/community", label: t("nav.community") },
+        { href: "/subscribe", label: t("nav.subscribe") },
+        { href: "/affiliate", label: t("nav.affiliate") },
+      ],
+    },
+    {
       title: t("footer.care"),
       links: [
         { href: "/checkout", label: t("footer.shipping") },
@@ -44,8 +57,8 @@ export function Footer() {
   return (
     <footer className="mt-auto border-t border-line bg-ivory-deep">
       <div className="mx-auto max-w-[1440px] px-5 py-16 md:px-8 md:py-20">
-        <div className="grid gap-12 md:grid-cols-12">
-          <div className="md:col-span-4">
+        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-12">
+          <div className="sm:col-span-2 lg:col-span-3">
             <Link
               href="/"
               className="font-display text-3xl tracking-[0.28em] md:text-4xl"
@@ -55,9 +68,24 @@ export function Footer() {
             <p className="mt-5 max-w-sm text-sm leading-relaxed text-muted">
               {t("footer.blurb")}
             </p>
-            <form className="mt-8 flex max-w-sm border border-line-strong bg-surface">
+            <form
+              className="mt-8 flex max-w-sm border border-line-strong bg-surface"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const fd = new FormData(e.currentTarget);
+                const email = String(fd.get("email") || "");
+                await fetch("/api/notify", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ type: "newsletter", email }),
+                });
+                e.currentTarget.reset();
+                alert("You're on the list — drops & Glow perks incoming.");
+              }}
+            >
               <input
                 type="email"
+                name="email"
                 required
                 placeholder={t("footer.emailJoin")}
                 className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm outline-none placeholder:text-muted"
@@ -75,7 +103,7 @@ export function Footer() {
           </div>
 
           {cols.map((col) => (
-            <div key={col.title} className="md:col-span-2">
+            <div key={col.title} className="lg:col-span-2">
               <h4 className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted">
                 {col.title}
               </h4>
@@ -94,7 +122,7 @@ export function Footer() {
             </div>
           ))}
 
-          <div className="md:col-span-2">
+          <div className="lg:col-span-1">
             <h4 className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted">
               {t("footer.domains")}
             </h4>

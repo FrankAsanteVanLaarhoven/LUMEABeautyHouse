@@ -3,6 +3,7 @@ import { getProductBySlug, listProducts } from "@/lib/db";
 import { ProductDetail } from "@/components/product/ProductDetail";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { RelatedHeading } from "@/components/product/RelatedHeading";
+import { RecentlyViewed } from "@/components/shop/RecentlyViewed";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,7 @@ export default async function ProductPage({
           </div>
         </section>
       )}
+      <RecentlyViewed />
     </>
   );
 }

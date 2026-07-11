@@ -6,8 +6,11 @@ export function AnnouncementBar() {
   const { t } = useT();
   const messages = [
     t("announce.ship"),
+    t("announce.quiz"),
     t("announce.lume15"),
+    t("announce.gifts"),
     t("announce.lume25"),
+    t("announce.coils"),
     t("announce.veil"),
   ];
   const loop = [...messages, ...messages];

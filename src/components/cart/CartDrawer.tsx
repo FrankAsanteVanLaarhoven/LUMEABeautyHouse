@@ -6,12 +6,16 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Minus, Plus, X } from "lucide-react";
 import { useCart } from "@/store/cart";
 import { useT } from "@/lib/i18n/useT";
+import { ShipProgress } from "@/components/cart/ShipProgress";
+import { FREE_SHIP_THRESHOLD } from "@/lib/bundles";
 
 export function CartDrawer() {
   const { t, formatPrice } = useT();
   const { items, isOpen, close, removeItem, updateQty, subtotal, discount } =
     useCart();
-  const total = Math.max(0, subtotal() - discount);
+  const sub = subtotal();
+  const total = Math.max(0, sub - discount);
+  const freeShip = sub >= FREE_SHIP_THRESHOLD;
 
   return (
     <AnimatePresence>
@@ -45,6 +49,8 @@ export function CartDrawer() {
                 <X size={20} strokeWidth={1.5} />
               </button>
             </div>
+
+            {items.length > 0 && <ShipProgress />}
 
             <div className="flex-1 overflow-y-auto px-6 py-4">
               {items.length === 0 ? (
@@ -134,14 +140,22 @@ export function CartDrawer() {
                 )}
                 <div className="mb-4 flex justify-between text-sm">
                   <span className="text-muted">{t("cart.shipping")}</span>
-                  <span className="text-muted">{t("cart.shippingCalc")}</span>
+                  <span className={freeShip ? "text-ok" : "text-muted"}>
+                    {freeShip ? "Free" : t("cart.shippingCalc")}
+                  </span>
                 </div>
-                <div className="mb-5 flex justify-between font-medium">
+                <div className="mb-2 flex justify-between font-medium">
                   <span>{t("cart.estimated")}</span>
                   <span className="font-display text-2xl">
                     {formatPrice(total)}
                   </span>
                 </div>
+                <p className="mb-5 text-[10px] text-muted">
+                  +{Math.round(total)} Glow Points after checkout ·{" "}
+                  <Link href="/glow" onClick={close} className="underline">
+                    Glow Club
+                  </Link>
+                </p>
                 <Link
                   href="/checkout"
                   onClick={close}
@@ -149,6 +163,22 @@ export function CartDrawer() {
                 >
                   {t("cart.checkout")}
                 </Link>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-center text-[10px] uppercase tracking-[0.12em]">
+                  <Link
+                    href="/quiz"
+                    onClick={close}
+                    className="border border-line py-2 text-muted hover:border-ink hover:text-ink"
+                  >
+                    Match quiz
+                  </Link>
+                  <Link
+                    href="/gifts"
+                    onClick={close}
+                    className="border border-line py-2 text-muted hover:border-ink hover:text-ink"
+                  >
+                    Gift finder
+                  </Link>
+                </div>
                 <Link
                   href="/cart"
                   onClick={close}

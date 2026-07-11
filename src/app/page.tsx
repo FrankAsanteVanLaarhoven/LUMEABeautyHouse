@@ -9,6 +9,11 @@ import {
 } from "@/components/home/FeaturedGrid";
 import { CampaignGallery } from "@/components/home/CampaignGallery";
 import { SkinCommunity } from "@/components/home/SkinCommunity";
+import {
+  DiscoveryStrip,
+  TrustBar,
+} from "@/components/home/DiscoveryStrip";
+import { RecentlyViewed } from "@/components/shop/RecentlyViewed";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +22,8 @@ export default async function HomePage() {
   return (
     <>
       <Hero />
+      <TrustBar />
+      <DiscoveryStrip />
       <CampaignGallery />
       <SkinCommunity />
       <FeaturedGrid products={products.slice(0, 8)} />
@@ -24,6 +31,7 @@ export default async function HomePage() {
       <Categories />
       <Philosophy />
       <PromoBanner />
+      <RecentlyViewed />
     </>
   );
 }

@@ -10,12 +10,15 @@ import {
   Wallet,
   Package,
   User,
+  Star,
 } from "lucide-react";
 import type { Order } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { useT } from "@/lib/i18n/useT";
 import { useProfile } from "@/store/profile";
 import { usePrefs } from "@/store/prefs";
+import { useBrowse } from "@/store/browse";
+import { tierForPoints } from "@/lib/bundles";
 import { cn } from "@/lib/utils";
 
 const CONCERNS = [
@@ -50,6 +53,8 @@ function AccountInner() {
   const skinDepth = usePrefs((s) => s.skinDepth);
   const setSkinProfile = usePrefs((s) => s.setSkinProfile);
   const liked = usePrefs((s) => s.likedProducts);
+  const loyaltyPoints = useBrowse((s) => s.loyaltyPoints);
+  const glowTier = tierForPoints(loyaltyPoints);
 
   useEffect(() => {
     fetch("/api/orders")
@@ -419,7 +424,7 @@ function AccountInner() {
             <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
               {t("profile.experiences")}
             </h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {[
                 {
                   href: "/studio",
@@ -438,6 +443,18 @@ function AccountInner() {
                   icon: Wallet,
                   label: t("wallet.title"),
                   meta: formatPrice(profile.walletBalance),
+                },
+                {
+                  href: "/glow",
+                  icon: Star,
+                  label: t("nav.glow"),
+                  meta: `${loyaltyPoints} pts · ${glowTier.current.name}`,
+                },
+                {
+                  href: "/quiz",
+                  icon: Sparkles,
+                  label: t("nav.quiz"),
+                  meta: "Skin + hair match",
                 },
                 {
                   href: "/shop",
@@ -460,6 +477,29 @@ function AccountInner() {
                   <p className="mt-1 text-xs text-muted">{card.meta}</p>
                 </Link>
               ))}
+            </div>
+          </section>
+
+          {/* Glow Club */}
+          <section className="mt-14">
+            <div className="flex flex-wrap items-center justify-between gap-4 border border-line bg-surface p-6">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-champagne">
+                  {t("nav.glow")} · {glowTier.current.name}
+                </p>
+                <p className="mt-2 font-display text-4xl tabular-nums">
+                  {loyaltyPoints}
+                </p>
+                <p className="text-sm text-muted">Glow Points</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Link href="/glow" className="btn-primary !py-2">
+                  Redeem & tiers
+                </Link>
+                <Link href="/quiz" className="btn-ghost !py-2">
+                  +50 via quiz
+                </Link>
+              </div>
             </div>
           </section>
 

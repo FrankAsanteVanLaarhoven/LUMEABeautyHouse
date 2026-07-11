@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { CartDrawer } from "@/components/cart/CartDrawer";
+import { AbandonedCartCapture } from "@/components/cart/AbandonedCartCapture";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { GlobalBar } from "@/components/global/GlobalBar";
 import { I18nProvider } from "@/components/i18n/I18nProvider";
@@ -75,6 +76,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
           <CartDrawer />
+          <AbandonedCartCapture />
         </I18nProvider>
       </body>
     </html>

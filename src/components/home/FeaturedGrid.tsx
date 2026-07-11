@@ -280,6 +280,12 @@ export function PromoBanner() {
             <Link href="/shop" className="btn-primary inline-flex">
               {t("home.shopNow")}
             </Link>
+            <Link href="/quiz" className="btn-ghost inline-flex">
+              {t("home.ctaQuiz")}
+            </Link>
+            <Link href="/gifts" className="btn-ghost inline-flex">
+              {t("nav.gifts")}
+            </Link>
             <Link href="/studio" className="btn-ghost inline-flex">
               {t("home.tryOnCta")}
             </Link>

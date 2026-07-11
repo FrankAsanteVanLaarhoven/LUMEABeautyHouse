@@ -37,6 +37,11 @@ export function Header() {
     { href: "/shop?category=body", label: t("nav.body") },
     { href: "/shop?category=tools", label: t("nav.tools") },
     { href: "/shop?category=sets", label: t("nav.sets") },
+    { href: "/quiz", label: t("nav.quiz") },
+    { href: "/concerns", label: t("nav.concerns") },
+    { href: "/routines", label: t("nav.routines") },
+    { href: "/gifts", label: t("nav.gifts") },
+    { href: "/community", label: t("nav.community") },
     { href: "/studio", label: t("nav.studio") },
     { href: "/tutorials", label: t("nav.tutorials") },
   ];
@@ -189,6 +194,12 @@ export function Header() {
               {t("nav.list")}
             </Link>
             <Link
+              href="/glow"
+              className="shrink-0 whitespace-nowrap px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.16em] text-champagne transition-colors hover:bg-sand/40"
+            >
+              {t("nav.glow")}
+            </Link>
+            <Link
               href="/platform"
               className="shrink-0 whitespace-nowrap px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.16em] text-champagne transition-colors hover:bg-sand/40"
             >
@@ -257,6 +268,62 @@ export function Header() {
                   {t("nav.shopAll")}
                 </Link>
                 <div className="mt-6 space-y-3 border-t border-line pt-6">
+                  <Link
+                    href="/quiz"
+                    onClick={() => setMobileOpen(false)}
+                    className="text-sm uppercase tracking-[0.16em] text-muted"
+                  >
+                    {t("nav.quiz")}
+                  </Link>
+                  <Link
+                    href="/concerns"
+                    onClick={() => setMobileOpen(false)}
+                    className="text-sm uppercase tracking-[0.16em] text-muted"
+                  >
+                    {t("nav.concerns")}
+                  </Link>
+                  <Link
+                    href="/routines"
+                    onClick={() => setMobileOpen(false)}
+                    className="text-sm uppercase tracking-[0.16em] text-muted"
+                  >
+                    {t("nav.routines")}
+                  </Link>
+                  <Link
+                    href="/gifts"
+                    onClick={() => setMobileOpen(false)}
+                    className="text-sm uppercase tracking-[0.16em] text-muted"
+                  >
+                    {t("nav.gifts")}
+                  </Link>
+                  <Link
+                    href="/glow"
+                    onClick={() => setMobileOpen(false)}
+                    className="text-sm uppercase tracking-[0.16em] text-champagne"
+                  >
+                    {t("nav.glow")}
+                  </Link>
+                  <Link
+                    href="/community"
+                    onClick={() => setMobileOpen(false)}
+                    className="text-sm uppercase tracking-[0.16em] text-muted"
+                  >
+                    {t("nav.community")}
+                  </Link>
+                  <Link
+                    href="/subscribe"
+                    onClick={() => setMobileOpen(false)}
+                    className="text-sm uppercase tracking-[0.16em] text-muted"
+                  >
+                    {t("nav.subscribe")}
+                  </Link>
+                  <Link
+                    href="/affiliate"
+                    onClick={() => setMobileOpen(false)}
+                    className="text-sm uppercase tracking-[0.16em] text-muted"
+                  >
+                    {t("nav.affiliate")}
+                  </Link>
                   <Link
                     href="/tutorials"
                     onClick={() => setMobileOpen(false)}

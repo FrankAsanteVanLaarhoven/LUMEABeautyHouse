@@ -32,6 +32,14 @@ const en = {
   "nav.wallet": "Wallet",
   "nav.list": "Shopping list",
   "nav.likes": "Liked",
+  "nav.quiz": "Match quiz",
+  "nav.routines": "Routines",
+  "nav.concerns": "By concern",
+  "nav.gifts": "Gifts",
+  "nav.glow": "Glow Club",
+  "nav.community": "Community",
+  "nav.affiliate": "Creators",
+  "nav.subscribe": "Subscribe",
 
   // Profile
   "profile.title": "Your profile",
@@ -104,6 +112,9 @@ const en = {
   "announce.lume15": "15% off $50+ with code LUME15",
   "announce.lume25": "25% off $75+ with code LUME25",
   "announce.veil": "New: Veil Soft-Focus Foundation — 50 shades",
+  "announce.quiz": "2-min match quiz · skin + hair · +50 Glow Points",
+  "announce.gifts": "Gift finder · she'll actually use it",
+  "announce.coils": "Coils & 4C ritual · shop by concern",
 
   // Home
   "home.season": "Spring / Summer 2026",
@@ -140,6 +151,14 @@ const en = {
   "home.shopNow": "Shop now",
   "home.tryOnCta": "Virtual try-on",
   "home.tryOnBody": "Live camera or photo upload. Match your shade. Trial before you buy.",
+  "home.ctaQuiz": "Find my match",
+  "home.discover": "Built for how you shop",
+  "home.discoverSub": "Skip the scroll. Get matched. Build rituals. Shop by concern.",
+  "home.trustReturns": "30-day returns",
+  "home.trustShip": "Free ship $75+",
+  "home.trustClean": "Clean · cruelty-free",
+  "home.trustShades": "50 foundation shades",
+  "home.trustTry": "Virtual try-on",
 
   // Shop
   "shop.collection": "Collection",

@@ -2,24 +2,55 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Product } from "@/lib/types";
 import { useCart } from "@/store/cart";
 import { useProfile } from "@/store/profile";
-import { ListPlus, Minus, Plus, Sparkles } from "lucide-react";
+import { useBrowse } from "@/store/browse";
+import {
+  Bell,
+  ListPlus,
+  Minus,
+  Plus,
+  RefreshCw,
+  Sparkles,
+  Star,
+} from "lucide-react";
 import { useT } from "@/lib/i18n/useT";
 import type { MessageKey } from "@/lib/i18n/messages";
 import { SocialShare } from "@/components/social/SocialShare";
+import { reviewsForProduct } from "@/lib/reviews";
+import { COMPLETE_LOOK } from "@/lib/bundles";
 
 export function ProductDetail({ product }: { product: Product }) {
   const { t, formatPrice } = useT();
   const [imageIdx, setImageIdx] = useState(0);
   const [variantId, setVariantId] = useState(product.variants[0]?.id);
   const [qty, setQty] = useState(1);
+  const [restockEmail, setRestockEmail] = useState("");
+  const [restockOk, setRestockOk] = useState(false);
   const addItem = useCart((s) => s.addItem);
   const addToList = useProfile((s) => s.addToList);
   const isInList = useProfile((s) => s.isInList);
+  const trackView = useBrowse((s) => s.trackView);
+  const addLoyalty = useBrowse((s) => s.addLoyalty);
+  const addRestockAlert = useBrowse((s) => s.addRestockAlert);
+  const restockAlerts = useBrowse((s) => s.restockAlerts);
+  const subscribeSave = useBrowse((s) => s.subscribeSave);
+  const setSubscribeSave = useBrowse((s) => s.setSubscribeSave);
+  const reviews = reviewsForProduct(product.slug);
+  const completeLook = COMPLETE_LOOK[product.slug] || [];
+
+  useEffect(() => {
+    trackView({
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      image: product.images[0],
+      price: product.price,
+    });
+  }, [product.id, product.slug, product.name, product.images, product.price, trackView]);
 
   const variant = useMemo(
     () => product.variants.find((v) => v.id === variantId) || product.variants[0],
@@ -42,6 +73,51 @@ export function ProductDetail({ product }: { product: Product }) {
   const isColorProduct =
     product.category === "makeup" &&
     (product.subcategory === "Face" || product.subcategory === "Lips");
+  const alreadyAlerted = restockAlerts.some((a) => a.slug === product.slug);
+  const unitPrice = variant?.price ?? product.price;
+  const subPrice = Math.round(unitPrice * 0.85 * 100) / 100;
+
+  async function onRestock(e: FormEvent) {
+    e.preventDefault();
+    if (!restockEmail.trim()) return;
+    addRestockAlert({
+      productId: product.id,
+      slug: product.slug,
+      name: product.name,
+      variantId: variant?.id,
+      email: restockEmail.trim(),
+    });
+    await fetch("/api/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "restock",
+        email: restockEmail.trim(),
+        productSlug: product.slug,
+        productName: product.name,
+        variantId: variant?.id,
+      }),
+    }).catch(() => null);
+    setRestockOk(true);
+    addLoyalty(10, "Restock alert");
+  }
+
+  function addCompleteLook() {
+    completeLook.forEach((item) => {
+      addItem({
+        productId: item.slug,
+        variantId: `${item.slug}-look`,
+        slug: item.slug,
+        name: item.name,
+        variantName: item.role,
+        sku: item.slug.slice(0, 10).toUpperCase(),
+        price: item.price,
+        image: item.image,
+        maxStock: 40,
+      });
+    });
+    addLoyalty(15, "Complete the look");
+  }
 
   return (
     <div className="mx-auto grid max-w-[1440px] gap-10 px-5 py-10 md:grid-cols-2 md:gap-16 md:px-8 md:py-16">
@@ -66,6 +142,11 @@ export function ProductDetail({ product }: { product: Product }) {
               />
             </motion.div>
           </AnimatePresence>
+          {stock > 0 && stock <= 8 && (
+            <span className="absolute left-3 top-3 bg-ink px-2 py-1 text-[9px] font-medium uppercase tracking-[0.14em] text-ivory">
+              Almost gone
+            </span>
+          )}
         </div>
         <div className="mt-3 grid grid-cols-4 gap-2">
           {product.images.map((img, i) => (
@@ -99,12 +180,15 @@ export function ProductDetail({ product }: { product: Product }) {
         <p className="mt-3 text-muted">{product.tagline}</p>
         <div className="mt-4 flex items-baseline gap-3">
           <p className="font-display text-3xl">
-            {formatPrice(variant?.price ?? product.price)}
+            {formatPrice(subscribeSave ? subPrice : unitPrice)}
           </p>
           {(variant?.compareAtPrice || product.compareAtPrice) && (
             <p className="text-muted line-through">
               {formatPrice(variant?.compareAtPrice || product.compareAtPrice || 0)}
             </p>
+          )}
+          {subscribeSave && (
+            <span className="text-xs text-ok">Save 15%</span>
           )}
         </div>
         <p className="mt-2 text-xs text-muted">
@@ -112,6 +196,7 @@ export function ProductDetail({ product }: { product: Product }) {
           {t("product.reviewsCount", {
             count: product.reviewCount.toLocaleString(),
           })}
+          {" · "}+{Math.round(unitPrice)} Glow Points
         </p>
 
         {product.variants.length > 1 && (
@@ -149,6 +234,14 @@ export function ProductDetail({ product }: { product: Product }) {
                 )
               )}
             </div>
+            {isColorProduct && (
+              <Link
+                href="/quiz"
+                className="mt-3 inline-block text-[11px] uppercase tracking-[0.12em] text-champagne underline-offset-4 hover:underline"
+              >
+                Not sure? Take the shade quiz →
+              </Link>
+            )}
           </div>
         )}
 
@@ -157,7 +250,26 @@ export function ProductDetail({ product }: { product: Product }) {
           {variant ? ` · SKU ${variant.sku}` : ""}
         </p>
 
-        <div className="mt-8 flex flex-wrap items-center gap-3">
+        {/* Subscribe & save */}
+        <label className="mt-5 flex cursor-pointer items-start gap-3 border border-line bg-surface p-3">
+          <input
+            type="checkbox"
+            checked={subscribeSave}
+            onChange={(e) => setSubscribeSave(e.target.checked)}
+            className="mt-0.5"
+          />
+          <span>
+            <span className="flex items-center gap-1.5 text-sm font-medium">
+              <RefreshCw size={14} className="text-champagne" />
+              Subscribe & save 15%
+            </span>
+            <span className="mt-0.5 block text-xs text-muted">
+              Deliver every 30 days · pause anytime · extra Glow Points
+            </span>
+          </span>
+        </label>
+
+        <div className="mt-6 flex flex-wrap items-center gap-3">
           <div className="flex items-center border border-line">
             <button
               className="p-3"
@@ -180,18 +292,27 @@ export function ProductDetail({ product }: { product: Product }) {
             disabled={!canAdd}
             onClick={() => {
               if (!variant || !canAdd) return;
+              const price = subscribeSave ? subPrice : variant.price;
               addItem({
                 productId: product.id,
-                variantId: variant.id,
+                variantId: subscribeSave
+                  ? `${variant.id}-sub`
+                  : variant.id,
                 slug: product.slug,
                 name: product.name,
-                variantName: variant.name,
+                variantName: subscribeSave
+                  ? `${variant.name} · Subscribe`
+                  : variant.name,
                 sku: variant.sku,
-                price: variant.price,
+                price,
                 image: product.images[0],
                 maxStock: variant.stock,
                 quantity: qty,
               });
+              addLoyalty(
+                Math.round(price) + (subscribeSave ? 20 : 0),
+                subscribeSave ? "Subscribe & save" : "Add to bag"
+              );
             }}
           >
             {canAdd ? t("product.addToBag") : t("product.outOfStock")}
@@ -219,6 +340,38 @@ export function ProductDetail({ product }: { product: Product }) {
           )}
         </div>
 
+        {/* Restock alert */}
+        {!canAdd && (
+          <form
+            onSubmit={onRestock}
+            className="mt-4 border border-line bg-ivory-deep/50 p-4"
+          >
+            <p className="flex items-center gap-2 text-sm font-medium">
+              <Bell size={14} className="text-champagne" />
+              Get notified when it&apos;s back
+            </p>
+            {restockOk || alreadyAlerted ? (
+              <p className="mt-2 text-xs text-ok">
+                You&apos;re on the list — we&apos;ll email you (+10 Glow Points).
+              </p>
+            ) : (
+              <div className="mt-3 flex gap-2">
+                <input
+                  type="email"
+                  required
+                  value={restockEmail}
+                  onChange={(e) => setRestockEmail(e.target.value)}
+                  placeholder="you@email.com"
+                  className="field flex-1 !py-2"
+                />
+                <button type="submit" className="btn-primary !px-4 !py-2">
+                  Notify me
+                </button>
+              </div>
+            )}
+          </form>
+        )}
+
         {isColorProduct && (
           <Link
             href="/studio"
@@ -227,6 +380,94 @@ export function ProductDetail({ product }: { product: Product }) {
             <Sparkles size={14} />
             {t("product.tryOn")} — {t("home.tryOnCta")}
           </Link>
+        )}
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <Link
+            href="/quiz"
+            className="border border-line px-3 py-2.5 text-center text-[10px] uppercase tracking-[0.12em] hover:border-ink"
+          >
+            Shade & hair quiz
+          </Link>
+          <Link
+            href="/concerns"
+            className="border border-line px-3 py-2.5 text-center text-[10px] uppercase tracking-[0.12em] hover:border-ink"
+          >
+            Shop by concern
+          </Link>
+        </div>
+
+        {/* Trust strip */}
+        <ul className="mt-6 grid grid-cols-2 gap-2 text-[10px] uppercase tracking-[0.1em] text-muted">
+          <li className="border border-line px-2 py-2">30-day returns</li>
+          <li className="border border-line px-2 py-2">Free ship $75+</li>
+          <li className="border border-line px-2 py-2">Clean formula</li>
+          <li className="border border-line px-2 py-2">Cruelty-free</li>
+        </ul>
+
+        {/* Complete the look */}
+        {completeLook.length > 0 && (
+          <div className="mt-10 border border-line bg-surface p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.16em] text-champagne">
+                  Complete the look
+                </p>
+                <h3 className="mt-1 font-display text-xl">Pairs perfectly</h3>
+              </div>
+              <button
+                onClick={addCompleteLook}
+                className="shrink-0 bg-ink px-3 py-2 text-[10px] font-medium uppercase tracking-[0.12em] text-ivory"
+              >
+                Add all
+              </button>
+            </div>
+            <ul className="mt-4 space-y-3">
+              {completeLook.map((item) => (
+                <li key={item.slug} className="flex items-center gap-3">
+                  <div className="relative h-14 w-11 shrink-0 overflow-hidden bg-ivory-deep">
+                    <Image
+                      src={item.image}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="44px"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] uppercase tracking-[0.1em] text-muted">
+                      {item.role}
+                    </p>
+                    <Link
+                      href={`/product/${item.slug}`}
+                      className="text-sm font-medium hover:underline"
+                    >
+                      {item.name}
+                    </Link>
+                  </div>
+                  <span className="text-sm">{formatPrice(item.price)}</span>
+                  <button
+                    className="text-[10px] uppercase tracking-[0.1em] underline"
+                    onClick={() => {
+                      addItem({
+                        productId: item.slug,
+                        variantId: `${item.slug}-look`,
+                        slug: item.slug,
+                        name: item.name,
+                        variantName: item.role,
+                        sku: item.slug.slice(0, 10).toUpperCase(),
+                        price: item.price,
+                        image: item.image,
+                        maxStock: 40,
+                      });
+                      addLoyalty(Math.round(item.price), "Complete look item");
+                    }}
+                  >
+                    Add
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
 
         <div className="mt-10 space-y-6 border-t border-line pt-8">
@@ -263,6 +504,50 @@ export function ProductDetail({ product }: { product: Product }) {
                   </span>
                 ))}
               </div>
+            </div>
+          )}
+          {reviews.length > 0 && (
+            <div>
+              <h3 className="text-[11px] font-medium uppercase tracking-[0.16em]">
+                Reviews from real skin & hair
+              </h3>
+              <ul className="mt-4 space-y-4">
+                {reviews.map((r) => (
+                  <li key={r.id} className="border border-line bg-surface p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-medium">{r.author}</p>
+                      <span className="inline-flex items-center gap-0.5 text-xs text-champagne">
+                        {Array.from({ length: r.rating }).map((_, i) => (
+                          <Star key={i} size={10} className="fill-champagne" />
+                        ))}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm font-medium">{r.title}</p>
+                    <p className="mt-1 text-sm text-ink-soft">{r.body}</p>
+                    <div className="mt-2 flex flex-wrap gap-2 text-[10px] uppercase tracking-[0.1em] text-muted">
+                      {r.skinTone && (
+                        <span className="border border-line px-2 py-0.5">
+                          {r.skinTone}
+                        </span>
+                      )}
+                      {r.skinType && (
+                        <span className="border border-line px-2 py-0.5">
+                          {r.skinType}
+                        </span>
+                      )}
+                      {r.hairType && (
+                        <span className="border border-line px-2 py-0.5">
+                          {r.hairType}
+                        </span>
+                      )}
+                      {r.verified && (
+                        <span className="text-ok">Verified</span>
+                      )}
+                      <span>Helpful · {r.helpful}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
           <div className="border-t border-line pt-6">

@@ -62,6 +62,12 @@ export function Hero() {
             {t("home.ctaShop")}
           </Link>
           <Link
+            href="/quiz"
+            className="inline-flex items-center justify-center border border-champagne bg-champagne/20 px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.18em] text-ivory transition hover:bg-champagne hover:text-ink"
+          >
+            {t("home.ctaQuiz")}
+          </Link>
+          <Link
             href="/studio"
             className="inline-flex items-center justify-center border border-ivory/40 px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.18em] text-ivory transition hover:border-ivory hover:bg-ivory/10"
           >

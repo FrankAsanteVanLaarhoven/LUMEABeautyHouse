@@ -290,7 +290,7 @@ export default function CheckoutPage() {
             {loading ? t("checkout.placing") : t("checkout.pay", { amount: formatPrice(total) })}
           </button>
           <p className="mt-3 text-center text-[10px] text-muted">
-            Try codes LUME15 · LUME25 · WELCOME10
+            Try LUME15 · LUME25 · WELCOME10 · NYMA15 · COILS20
           </p>
         </aside>
       </form>

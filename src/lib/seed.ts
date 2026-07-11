@@ -1091,5 +1091,10 @@ export function seedPromos(): PromoCode[] {
     { code: "LUME15", type: "percent", value: 15, minSubtotal: 50, active: true },
     { code: "LUME25", type: "percent", value: 25, minSubtotal: 75, active: true },
     { code: "WELCOME10", type: "fixed", value: 10, active: true },
+    { code: "NYMA15", type: "percent", value: 15, minSubtotal: 40, active: true },
+    { code: "COILS20", type: "percent", value: 20, minSubtotal: 55, active: true },
+    { code: "GLASS10", type: "fixed", value: 10, minSubtotal: 30, active: true },
+    { code: "ICON25", type: "percent", value: 25, minSubtotal: 100, active: true },
+    { code: "WARMTH15", type: "percent", value: 15, minSubtotal: 45, active: true },
   ];
 }
