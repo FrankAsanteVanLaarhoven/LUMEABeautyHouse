@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LUMÉA — Beauty Without Boundaries
 
-## Getting Started
+A professional-grade beauty e-commerce platform inspired by (and designed to surpass) Fenty-class storefronts: cinematic motion, minimalist luxury UI, inclusive shade architecture, and a full Shopify-style operations backend.
 
-First, run the development server:
+## Brand
+
+| | |
+|---|---|
+| **Name** | **LUMÉA** (loo-MAY-ah) |
+| **Tagline** | Light for every face. / Beauty without boundaries. |
+| **Registerable domains** | `lumea.beauty` · `getlumea.com` · `shoplumea.com` · `lumeabeauty.com` |
+| **Aesthetic** | Ivory · champagne gold · soft blush · ink charcoal |
+| **Type** | Cormorant Garamond (display) · DM Sans (UI) |
+
+## Stack
+
+- **Next.js 16** (App Router) + TypeScript + Tailwind CSS v4
+- **Framer Motion** — scroll reveals, drawers, page motion
+- **Zustand** — cart with localStorage persistence
+- **File-backed commerce DB** (`data/store.json`) — products, variants, stock, orders, customers, inventory ledger, promos
+- **Generated media** — campaign stills + hero video loops in `/public`
+
+## Features
+
+### Storefront
+- Cinematic hero with autoplay video
+- Featured edit, dual promo tiles, category house grid, philosophy band
+- Shop with category filters + search
+- PDP: shade/size picker, live stock labels, image gallery, quick-add
+- Cart drawer + full bag page
+- Checkout with promo codes, tax, free shipping threshold, stock decrement
+- Account / order confirmation
+
+### Ops Console (`/admin`) — Shopify-style
+- **Dashboard** — revenue, orders, customers, low stock, fulfillment queue
+- **Products** — create / edit / delete, badges, featured flag, images
+- **Inventory** — SKU stock levels, status (ok / low / critical / out), restock adjustments, movement log
+- **Orders** — list, detail, status transitions
+- **Fulfillment** — pick queue, tracking numbers, mark shipped
+- **Customers** — CRM list, LTV, tags, manual client upload/create
+
+### Promo codes
+- `LUME15` — 15% off $50+
+- `LUME25` — 25% off $75+
+- `WELCOME10` — $10 off
+
+## Multi-tenant brand platform
+
+| Feature | Path / API |
+|---------|------------|
+| Brand portal (login / register) | `/brand` |
+| Dashboard · products · CSV · white-label | `/brand/dashboard` etc. |
+| White-label storefront | `/b/{subdomain}` e.g. `/b/glowlab` |
+| CSV template + import | `GET/POST /api/brands/me/products/csv` |
+| Domain resolve | `GET /api/brands/resolve?host=` or `?slug=` |
+
+**Demo partner:** `partner@glowlab.demo` / `glowlab-demo`
+
+CSV columns: `name,slug,category,tagline,description,price,stock,sku,variant,shade_hex,image,badges,featured,active`
+
+## Run
 
 ```bash
+cd lumea
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3006](http://localhost:3006)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Surface | URL |
+|---------|-----|
+| Storefront | `/` |
+| Shop | `/shop` |
+| Admin ops | `/admin` |
+| Fulfillment | `/admin/fulfillment` |
+| Inventory | `/admin/inventory` |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project layout
 
-## Learn More
+```
+src/
+  app/           # routes (store + admin + API)
+  components/    # layout, home, shop, cart, admin
+  lib/           # types, db, seed, utils
+  store/         # zustand cart
+public/
+  images/        # campaign + product photography
+  videos/        # hero motion loops
+data/
+  store.json     # created on first run (commerce state)
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Design principles vs. reference
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Fenty-class pattern | LUMÉA elevation |
+|---------------------|-----------------|
+| Promo ticker | Continuous marquee + champagne accents |
+| Hero launch | Full-bleed video + typographic hierarchy |
+| Quick shop | Shade swatches on hover + stock-aware add |
+| Multi-promo grids | Dual cinematic tiles + motion |
+| Catalog density | Breathing space, display type, soft ivory system |
+| Ops (Shopify) | Built-in admin: stock, fulfill, CRM, products |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+© LUMÉA Beauty House — demo commerce platform
