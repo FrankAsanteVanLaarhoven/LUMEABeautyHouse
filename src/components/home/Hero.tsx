@@ -6,43 +6,44 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useT } from "@/lib/i18n/useT";
 import { cn } from "@/lib/utils";
 
-/** Diverse hero reels — crossfade loop */
+/**
+ * Fresh hero reels (new assets) + original glam campaign only.
+ * Paths are dedicated hero-reel-* files — not reused gallery campaign media.
+ */
 const HERO_REELS = [
   {
     id: "deep",
-    poster: "/images/hero-deep.jpg",
-    src: "/videos/hero-deep.mp4",
+    poster: "/images/hero-reel-deep.jpg",
+    src: "/videos/hero-reel-deep.mp4",
     label: "Deep",
   },
   {
     id: "asian",
-    poster: "/images/hero-asian.jpg",
-    src: "/videos/hero-asian.mp4",
+    poster: "/images/hero-reel-asian.jpg",
+    src: "/videos/hero-reel-asian.mp4",
     label: "Asian",
   },
   {
     id: "latina",
-    poster: "/images/hero-latina.jpg",
-    src: "/videos/hero-latina.mp4",
+    poster: "/images/hero-reel-latina.jpg",
+    src: "/videos/hero-reel-latina.mp4",
     label: "Hispanic",
   },
   {
     id: "blonde",
-    poster: "/images/hero-blonde.jpg",
-    src: "/videos/hero-blonde.mp4",
+    poster: "/images/hero-reel-blonde.jpg",
+    src: "/videos/hero-reel-blonde.mp4",
     label: "Blonde",
   },
   {
-    id: "glam",
-    poster: "/images/hero-glam.jpg",
+    id: "original",
+    poster: "/images/campaign-glam.jpg",
     src: "/videos/campaign-glam.mp4",
-    label: "Glam",
+    label: "Original",
   },
 ] as const;
 
-/** Seconds each reel holds before crossfade */
 const HOLD_MS = 7000;
-/** Crossfade duration (match CSS / framer) */
 const FADE_S = 1.35;
 
 export function Hero() {
@@ -60,7 +61,6 @@ export function Hero() {
     setActive((i) => (i + 1) % HERO_REELS.length);
   }, []);
 
-  // Auto-advance loop
   useEffect(() => {
     if (paused) return;
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -70,7 +70,6 @@ export function Hero() {
     };
   }, [active, paused, next]);
 
-  // Play active video; pause others; restart from start for clean loops
   useEffect(() => {
     videoRefs.current.forEach((v, i) => {
       if (!v) return;
@@ -90,7 +89,6 @@ export function Hero() {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {/* Stacked reels with crossfade */}
       <div className="absolute inset-0">
         {HERO_REELS.map((reel, i) => (
           <motion.div
@@ -115,7 +113,9 @@ export function Hero() {
               muted
               playsInline
               loop
-              preload={i === 0 || Math.abs(i - active) <= 1 ? "auto" : "metadata"}
+              preload={
+                i === 0 || Math.abs(i - active) <= 1 ? "auto" : "metadata"
+              }
               poster={reel.poster}
               className="absolute inset-0 h-full w-full object-cover opacity-80"
             >
@@ -125,7 +125,6 @@ export function Hero() {
         ))}
       </div>
 
-      {/* Soft dissolve edge between reels */}
       <div className="pointer-events-none absolute inset-0 z-[3] bg-gradient-to-r from-ink/85 via-ink/40 to-transparent" />
       <div className="noise-overlay absolute inset-0 z-[3]" />
 
@@ -190,7 +189,6 @@ export function Hero() {
         </motion.div>
       </div>
 
-      {/* Reel progress dots + labels */}
       <div className="absolute bottom-6 left-5 z-20 flex flex-col gap-3 md:left-8">
         <div className="flex items-center gap-2">
           {HERO_REELS.map((reel, i) => (
