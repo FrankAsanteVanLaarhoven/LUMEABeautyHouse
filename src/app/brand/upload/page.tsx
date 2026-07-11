@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { BrandShell } from "@/components/brand/BrandShell";
-import type { Brand } from "@/lib/types";
+import { useBrandPortal } from "@/hooks/useBrandPortal";
 import { Download, FileSpreadsheet, Upload } from "lucide-react";
 
 export default function BrandUploadPage() {
-  const router = useRouter();
-  const [brand, setBrand] = useState<Omit<Brand, "password"> | null>(null);
+  const { brand, role, member, loading: portalLoading } = useBrandPortal();
   const [file, setFile] = useState<File | null>(null);
   const [paste, setPaste] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,17 +15,6 @@ export default function BrandUploadPage() {
     errors: { row: number; error: string }[];
   } | null>(null);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    fetch("/api/brands/me").then(async (r) => {
-      if (!r.ok) {
-        router.replace("/brand");
-        return;
-      }
-      const d = await r.json();
-      setBrand(d.brand);
-    });
-  }, [router]);
 
   async function uploadFile() {
     if (!file) {
@@ -78,12 +65,12 @@ export default function BrandUploadPage() {
     }
   }
 
-  if (!brand) {
+  if (portalLoading || !brand) {
     return <div className="p-16 text-center text-muted">Loading…</div>;
   }
 
   return (
-    <BrandShell brand={brand}>
+    <BrandShell brand={brand} role={role} memberName={member?.name}>
       <div className="mb-8">
         <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-dim)]">
           Bulk import

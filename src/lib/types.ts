@@ -70,6 +70,55 @@ export interface WhiteLabelConfig {
   enabled: boolean;
 }
 
+/** Per-brand Mirror Studio visual skin */
+export interface StudioSkinConfig {
+  enabled: boolean;
+  studioName: string;
+  headline: string;
+  subheadline: string;
+  defaultLook: "mirror-white" | "soft-luxe" | "brand";
+  frameColor: string;
+  ringLightColor: string;
+  panelColor: string;
+  textColor: string;
+  accentColor: string;
+  buttonColor: string;
+  buttonTextColor: string;
+  logoUrl: string;
+  watermark: string;
+  showPoweredBy: boolean;
+  defaultBrightness: number;
+  defaultIntensity: number;
+}
+
+export type TeamRole = "owner" | "admin" | "editor" | "viewer";
+
+export type TeamPermission =
+  | "dashboard:read"
+  | "products:read"
+  | "products:write"
+  | "csv:import"
+  | "whitelabel:write"
+  | "studio:write"
+  | "team:read"
+  | "team:write"
+  | "billing:write";
+
+export interface BrandMember {
+  id: string;
+  brandId: string;
+  email: string;
+  name: string;
+  /** Demo auth */
+  password: string;
+  role: TeamRole;
+  status: "active" | "invited" | "disabled";
+  invitedBy?: string;
+  lastLoginAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Brand {
   id: string;
   slug: string;
@@ -82,6 +131,10 @@ export interface Brand {
   plan: BrandPlan;
   status: BrandStatus;
   whiteLabel: WhiteLabelConfig;
+  studioSkin: StudioSkinConfig;
+  /** Seat cap by plan (starter 2 / growth 5 / enterprise 25) */
+  seatLimit: number;
+  members: BrandMember[];
   productCount: number;
   createdAt: string;
   updatedAt: string;
@@ -91,6 +144,8 @@ export interface BrandSession {
   brandId: string;
   email: string;
   token: string;
+  memberId: string;
+  role: TeamRole;
   createdAt: string;
 }
 

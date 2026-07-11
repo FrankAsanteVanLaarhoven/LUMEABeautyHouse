@@ -13,10 +13,10 @@ export function Hero() {
         muted
         loop
         playsInline
-        poster="/images/hero-products.jpg"
-        className="absolute inset-0 h-full w-full object-cover opacity-70"
+        poster="/images/campaign-glam.jpg"
+        className="absolute inset-0 h-full w-full object-cover opacity-75"
       >
-        <source src="/videos/hero-products.mp4" type="video/mp4" />
+        <source src="/videos/campaign-glam.mp4" type="video/mp4" />
       </video>
       <div className="absolute inset-0 bg-gradient-to-r from-ink/85 via-ink/45 to-transparent" />
       <div className="noise-overlay absolute inset-0" />

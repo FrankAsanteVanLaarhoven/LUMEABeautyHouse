@@ -353,9 +353,9 @@ const en = {
   "studio.toolsCta": "Pair with tools & free artist tutorials",
 
   // Tutorials
-  "tutorials.eyebrow": "Learn · free master classes",
+  "tutorials.eyebrow": "Learn from beautiful women · free masterclasses",
   "tutorials.title": "Makeup tutorials",
-  "tutorials.sub": "Contouring, base, and full-face techniques from world-class artists — embedded free on YouTube, shop the look inside LUMÉA.",
+  "tutorials.sub": "Contouring, glow, and full glam from world-class women artists — see the look on beautiful faces, then try it in Mirror Studio.",
   "tutorials.tryStudio": "Practice in Mirror Studio",
   "tutorials.openYt": "Open on YouTube",
   "tutorials.shopLook": "Shop this look",

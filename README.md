@@ -51,10 +51,21 @@ A professional-grade beauty e-commerce platform inspired by (and designed to sur
 | Brand portal (login / register) | `/brand` |
 | Dashboard · products · CSV · white-label | `/brand/dashboard` etc. |
 | White-label storefront | `/b/{subdomain}` e.g. `/b/glowlab` |
+| Branded Mirror Studio | `/b/{subdomain}/studio` |
+| Studio skin config | `/brand/studio` |
+| Team seats (RBAC) | `/brand/team` |
 | CSV template + import | `GET/POST /api/brands/me/products/csv` |
 | Domain resolve | `GET /api/brands/resolve?host=` or `?slug=` |
 
-**Demo partner:** `partner@glowlab.demo` / `glowlab-demo`
+**Demo partner seats**
+
+| Role | Email | Password |
+|------|-------|----------|
+| Owner | `partner@glowlab.demo` | `glowlab-demo` |
+| Editor | `editor@glowlab.demo` | `editor-demo` |
+| Viewer | `viewer@glowlab.demo` | `viewer-demo` |
+
+Seat limits: starter **2** · growth **5** · enterprise **25**
 
 CSV columns: `name,slug,category,tagline,description,price,stock,sku,variant,shade_hex,image,badges,featured,active`
 

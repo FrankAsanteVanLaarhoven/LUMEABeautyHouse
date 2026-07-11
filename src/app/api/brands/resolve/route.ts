@@ -27,7 +27,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Brand not found" }, { status: 404 });
   }
 
-  const { password: _, ...pub } = brand;
+  // Public shape — strip secrets
+  const { password: _, members, ...rest } = brand;
+  const pub = {
+    ...rest,
+    members: (members || []).map(({ password: _p, ...m }) => m),
+    seatsUsed: (members || []).filter((m) => m.status !== "disabled").length,
+  };
   const products = (await listBrandProducts(brand.id)).filter((p) => p.active);
-  return NextResponse.json({ brand: pub, products });
+  return NextResponse.json({
+    brand: pub,
+    products,
+    studioSkin: brand.studioSkin,
+  });
 }

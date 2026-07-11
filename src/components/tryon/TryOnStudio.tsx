@@ -23,9 +23,10 @@ import { usePrefs } from "@/store/prefs";
 import { useProfile } from "@/store/profile";
 import { useCart } from "@/store/cart";
 import { cn } from "@/lib/utils";
+import type { StudioSkinConfig } from "@/lib/types";
 
 type Category = "foundation" | "lips" | "bronzer" | "contour";
-type StudioLook = "mirror-white" | "soft-luxe";
+type StudioLook = "mirror-white" | "soft-luxe" | "brand";
 
 interface ShadeOption {
   id: string;
@@ -89,7 +90,13 @@ function luminance(r: number, g: number, b: number) {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 }
 
-export function TryOnStudio() {
+export function TryOnStudio({
+  brandSkin,
+  brandName,
+}: {
+  brandSkin?: StudioSkinConfig | null;
+  brandName?: string;
+} = {}) {
   const { t, formatPrice } = useT();
   const addItem = useCart((s) => s.addItem);
   const skinType = usePrefs((s) => s.skinType);
@@ -98,6 +105,7 @@ export function TryOnStudio() {
   const setSkinProfile = usePrefs((s) => s.setSkinProfile);
   const clientProfile = useProfile((s) => s.profile);
   const updateClientProfile = useProfile((s) => s.updateProfile);
+  const skinned = Boolean(brandSkin?.enabled);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -107,14 +115,27 @@ export function TryOnStudio() {
   const stillRef = useRef<HTMLImageElement | null>(null);
 
   const [mode, setMode] = useState<"live" | "upload">("live");
-  const [studioLook, setStudioLook] = useState<StudioLook>("mirror-white");
+  const [studioLook, setStudioLook] = useState<StudioLook>(
+    brandSkin?.defaultLook || "mirror-white"
+  );
   const [camOn, setCamOn] = useState(false);
   const [camError, setCamError] = useState("");
   const [facingUser, setFacingUser] = useState(true);
   const [category, setCategory] = useState<Category>("foundation");
   const [selected, setSelected] = useState<ShadeOption>(SHADES[3]);
-  const [intensity, setIntensity] = useState(0.42);
-  const [brightness, setBrightness] = useState(1.12);
+  const [intensity, setIntensity] = useState(
+    brandSkin?.defaultIntensity ?? 0.42
+  );
+  const [brightness, setBrightness] = useState(
+    brandSkin?.defaultBrightness ?? 1.12
+  );
+
+  useEffect(() => {
+    if (!brandSkin?.enabled) return;
+    setStudioLook(brandSkin.defaultLook || "brand");
+    setIntensity(brandSkin.defaultIntensity ?? 0.42);
+    setBrightness(brandSkin.defaultBrightness ?? 1.12);
+  }, [brandSkin]);
   const [analyzing, setAnalyzing] = useState(false);
   const [sampledDepth, setSampledDepth] = useState<number | null>(null);
   const [hasMedia, setHasMedia] = useState(false);
@@ -222,8 +243,11 @@ export function TryOnStudio() {
       ctx.clearRect(0, 0, w, h);
 
       // Studio fill behind (visible if letterboxed)
-      if (studioLook === "mirror-white") {
-        ctx.fillStyle = "#f7f7f5";
+      if (studioLook === "mirror-white" || studioLook === "brand") {
+        ctx.fillStyle =
+          studioLook === "brand" && brandSkin?.frameColor
+            ? brandSkin.frameColor
+            : "#f7f7f5";
         ctx.fillRect(0, 0, w, h);
       } else {
         ctx.fillStyle = "#1a1612";
@@ -328,13 +352,18 @@ export function TryOnStudio() {
       ctx.stroke();
 
       // Soft ring-light vignette (studio identity)
-      if (studioLook === "mirror-white") {
+      if (studioLook === "mirror-white" || studioLook === "brand") {
         const vg = ctx.createRadialGradient(
           w * 0.5, h * 0.4, w * 0.25,
           w * 0.5, h * 0.45, w * 0.75
         );
         vg.addColorStop(0, "rgba(255,255,255,0)");
-        vg.addColorStop(1, "rgba(255,255,255,0.18)");
+        const ring =
+          studioLook === "brand" && brandSkin?.ringLightColor
+            ? brandSkin.ringLightColor
+            : "#ffffff";
+        // parse hex to soft fade
+        vg.addColorStop(1, `${ring}2e`);
         ctx.globalCompositeOperation = "source-over";
         ctx.fillStyle = vg;
         ctx.fillRect(0, 0, w, h);
@@ -345,7 +374,17 @@ export function TryOnStudio() {
 
     animRef.current = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(animRef.current);
-  }, [mode, selected, intensity, category, hasMedia, studioLook, brightness, facingUser]);
+  }, [
+    mode,
+    selected,
+    intensity,
+    category,
+    hasMedia,
+    studioLook,
+    brightness,
+    facingUser,
+    brandSkin,
+  ]);
 
   function analyzeSkin() {
     const canvas = canvasRef.current;
@@ -426,35 +465,97 @@ export function TryOnStudio() {
     });
   }
 
-  const isWhite = studioLook === "mirror-white";
+  const isWhite =
+    studioLook === "mirror-white" ||
+    (studioLook === "brand" && skinned);
+  const isBrandLook = studioLook === "brand" && skinned;
+  const pageBg = isBrandLook
+    ? brandSkin!.panelColor
+    : isWhite
+      ? "#f4f4f2"
+      : undefined;
+  const textCol = isBrandLook ? brandSkin!.textColor : undefined;
+  const accentCol = isBrandLook ? brandSkin!.accentColor : undefined;
+  const btnCol = isBrandLook ? brandSkin!.buttonColor : undefined;
+  const btnText = isBrandLook ? brandSkin!.buttonTextColor : undefined;
+  const frameBg = isBrandLook
+    ? brandSkin!.frameColor
+    : isWhite
+      ? "#ffffff"
+      : "#1a1612";
+  const ringCol = isBrandLook ? brandSkin!.ringLightColor : "#ffffff";
 
   return (
-    <div className={cn(isWhite ? "bg-[#f4f4f2]" : "bg-ivory")}>
+    <div
+      className={cn(!pageBg && (isWhite ? "bg-[#f4f4f2]" : "bg-ivory"))}
+      style={pageBg ? { background: pageBg, color: textCol } : undefined}
+    >
       {/* Studio hero band */}
-      <div className="relative overflow-hidden border-b border-line">
+      <div
+        className="relative overflow-hidden border-b border-line"
+        style={
+          isBrandLook
+            ? { borderColor: `${textCol}18`, background: brandSkin!.panelColor }
+            : undefined
+        }
+      >
         <div className="absolute inset-0 opacity-30">
           <Image src="/images/studio-white.jpg" alt="" fill className="object-cover" />
         </div>
         <div className="relative mx-auto max-w-[1440px] px-5 py-10 md:px-8 md:py-14">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-2xl">
-              <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-muted">
-                {t("studio.mirrorBadge")}
-              </p>
-              <h1 className="mt-2 font-display text-4xl tracking-tight md:text-6xl">
-                {t("studio.mirrorTitle")}
+              <div className="flex items-center gap-2">
+                {skinned && brandSkin?.logoUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={brandSkin.logoUrl}
+                    alt=""
+                    className="h-6 w-6 object-contain"
+                  />
+                )}
+                <p
+                  className="text-[10px] font-medium uppercase tracking-[0.24em] text-muted"
+                  style={accentCol ? { color: accentCol } : undefined}
+                >
+                  {skinned
+                    ? brandSkin!.watermark || brandName || "Brand studio"
+                    : t("studio.mirrorBadge")}
+                </p>
+              </div>
+              <h1
+                className="mt-2 font-display text-4xl tracking-tight md:text-6xl"
+                style={textCol ? { color: textCol } : undefined}
+              >
+                {skinned ? brandSkin!.studioName : t("studio.mirrorTitle")}
               </h1>
-              <p className="mt-3 text-sm text-muted md:text-base">
-                {t("studio.mirrorSub")}
+              <p
+                className="mt-3 text-sm text-muted md:text-base"
+                style={textCol ? { color: textCol, opacity: 0.75 } : undefined}
+              >
+                {skinned
+                  ? brandSkin!.subheadline || brandSkin!.headline
+                  : t("studio.mirrorSub")}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Link href="/tutorials" className="btn-ghost !py-2.5 text-[10px]">
                 <PlayCircle size={14} /> {t("nav.tutorials")}
               </Link>
-              <Link href="/platform" className="btn-primary !py-2.5 text-[10px]">
-                {t("nav.platform")}
-              </Link>
+              {!skinned && (
+                <Link href="/platform" className="btn-primary !py-2.5 text-[10px]">
+                  {t("nav.platform")}
+                </Link>
+              )}
+              {skinned && brandSkin?.showPoweredBy && (
+                <Link
+                  href="/platform"
+                  className="border px-4 py-2.5 text-[10px] uppercase tracking-[0.14em]"
+                  style={{ borderColor: `${accentCol}66`, color: accentCol }}
+                >
+                  Powered by LUMÉA
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -466,11 +567,29 @@ export function TryOnStudio() {
           <div>
             {/* Studio look toggle */}
             <div className="mb-4 flex flex-wrap items-center gap-2">
+              {skinned && (
+                <button
+                  onClick={() => setStudioLook("brand")}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 px-4 py-2 text-[10px] font-medium uppercase tracking-[0.14em]",
+                    isBrandLook ? "text-white" : "border border-line"
+                  )}
+                  style={
+                    isBrandLook
+                      ? { background: btnCol, color: btnText }
+                      : undefined
+                  }
+                >
+                  Brand vanity
+                </button>
+              )}
               <button
                 onClick={() => setStudioLook("mirror-white")}
                 className={cn(
                   "inline-flex items-center gap-1.5 px-4 py-2 text-[10px] font-medium uppercase tracking-[0.14em]",
-                  isWhite ? "bg-ink text-ivory" : "border border-line"
+                  studioLook === "mirror-white"
+                    ? "bg-ink text-ivory"
+                    : "border border-line"
                 )}
               >
                 <Lightbulb size={12} /> {t("studio.lookWhite")}
@@ -479,25 +598,34 @@ export function TryOnStudio() {
                 onClick={() => setStudioLook("soft-luxe")}
                 className={cn(
                   "inline-flex items-center gap-1.5 px-4 py-2 text-[10px] font-medium uppercase tracking-[0.14em]",
-                  !isWhite ? "bg-ink text-ivory" : "border border-line"
+                  studioLook === "soft-luxe"
+                    ? "bg-ink text-ivory"
+                    : "border border-line"
                 )}
               >
                 {t("studio.lookSoft")}
               </button>
             </div>
 
-            {/* White studio frame */}
+            {/* Studio frame */}
             <div
               className={cn(
                 "relative overflow-hidden",
-                isWhite
-                  ? "bg-white p-3 shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_25px_80px_-20px_rgba(0,0,0,0.15)] ring-1 ring-white md:p-5"
-                  : "bg-ink p-1"
+                isWhite || isBrandLook
+                  ? "p-3 shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_25px_80px_-20px_rgba(0,0,0,0.15)] md:p-5"
+                  : "p-1"
               )}
+              style={{ background: frameBg }}
             >
               {/* Ring light ornament */}
-              {isWhite && (
-                <div className="pointer-events-none absolute left-1/2 top-2 z-10 h-1 w-24 -translate-x-1/2 rounded-full bg-gradient-to-r from-transparent via-white to-transparent shadow-[0_0_20px_8px_rgba(255,255,255,0.9)]" />
+              {(isWhite || isBrandLook) && (
+                <div
+                  className="pointer-events-none absolute left-1/2 top-2 z-10 h-1 w-24 -translate-x-1/2 rounded-full"
+                  style={{
+                    background: `linear-gradient(90deg, transparent, ${ringCol}, transparent)`,
+                    boxShadow: `0 0 20px 8px ${ringCol}cc`,
+                  }}
+                />
               )}
               <div className="relative aspect-[3/4] overflow-hidden bg-[#eee] md:aspect-[4/5]">
                 <video
@@ -511,18 +639,54 @@ export function TryOnStudio() {
                   className="absolute inset-0 h-full w-full object-cover"
                 />
                 {!hasMedia && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-white p-8 text-center">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full border border-sand bg-ivory">
-                      <Sparkles className="text-champagne" size={26} />
+                  <div
+                    className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-8 text-center"
+                    style={{
+                      background: isBrandLook ? brandSkin!.panelColor : "#fff",
+                      color: textCol,
+                    }}
+                  >
+                    <div
+                      className="flex h-16 w-16 items-center justify-center rounded-full border"
+                      style={{
+                        borderColor: `${accentCol || "#c4a574"}55`,
+                        background: isBrandLook
+                          ? brandSkin!.frameColor
+                          : "#faf7f2",
+                      }}
+                    >
+                      <Sparkles
+                        size={26}
+                        style={{ color: accentCol || "#c4a574" }}
+                      />
                     </div>
                     <p className="font-display text-2xl md:text-3xl">
-                      {t("studio.mirrorReady")}
+                      {skinned
+                        ? brandSkin!.headline || t("studio.mirrorReady")
+                        : t("studio.mirrorReady")}
                     </p>
-                    <p className="max-w-xs text-xs text-muted">
-                      {t("studio.mirrorHint")}
+                    <p
+                      className="max-w-xs text-xs text-muted"
+                      style={textCol ? { color: textCol, opacity: 0.7 } : undefined}
+                    >
+                      {skinned
+                        ? brandSkin!.subheadline || t("studio.mirrorHint")
+                        : t("studio.mirrorHint")}
                     </p>
                     <div className="flex flex-wrap justify-center gap-2">
-                      <button onClick={() => startCam(true)} className="btn-primary">
+                      <button
+                        onClick={() => startCam(true)}
+                        className="btn-primary"
+                        style={
+                          isBrandLook
+                            ? {
+                                background: btnCol,
+                                color: btnText,
+                                borderColor: btnCol,
+                              }
+                            : undefined
+                        }
+                      >
                         <Camera size={14} /> {t("studio.startMirror")}
                       </button>
                       <button
@@ -588,9 +752,14 @@ export function TryOnStudio() {
                   }}
                 />
               </div>
-              {isWhite && (
-                <p className="mt-3 text-center text-[10px] uppercase tracking-[0.2em] text-muted">
-                  {t("studio.vanityLabel")}
+              {(isWhite || isBrandLook) && (
+                <p
+                  className="mt-3 text-center text-[10px] uppercase tracking-[0.2em] text-muted"
+                  style={accentCol ? { color: accentCol } : undefined}
+                >
+                  {skinned
+                    ? `${brandSkin!.watermark || brandName} · front-facing`
+                    : t("studio.vanityLabel")}
                 </p>
               )}
             </div>

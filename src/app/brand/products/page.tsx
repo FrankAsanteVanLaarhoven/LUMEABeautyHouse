@@ -1,32 +1,19 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
 import Image from "next/image";
 import { BrandShell } from "@/components/brand/BrandShell";
-import type { Brand, Product, ProductCategory } from "@/lib/types";
+import { useBrandPortal } from "@/hooks/useBrandPortal";
+import type { ProductCategory } from "@/lib/types";
 
 export default function BrandProductsPage() {
-  const router = useRouter();
-  const [brand, setBrand] = useState<Omit<Brand, "password"> | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
+  const { brand, role, member, products, loading, reload } = useBrandPortal();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
   async function load() {
-    const res = await fetch("/api/brands/me");
-    if (!res.ok) {
-      router.replace("/brand");
-      return;
-    }
-    const d = await res.json();
-    setBrand(d.brand);
-    setProducts(d.products || []);
+    await reload();
   }
-
-  useEffect(() => {
-    load();
-  }, [router]);
 
   async function onCreate(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -68,12 +55,12 @@ export default function BrandProductsPage() {
     load();
   }
 
-  if (!brand) {
+  if (loading || !brand) {
     return <div className="p-16 text-center text-muted">Loading…</div>;
   }
 
   return (
-    <BrandShell brand={brand}>
+    <BrandShell brand={brand} role={role} memberName={member?.name}>
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-dim)]">

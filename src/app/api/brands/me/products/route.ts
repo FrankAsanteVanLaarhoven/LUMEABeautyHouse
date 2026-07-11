@@ -9,17 +9,24 @@ import { deleteProduct } from "@/lib/db";
 
 export async function GET() {
   try {
-    const { brand } = await requireBrand();
+    const { brand } = await requireBrand({ permission: "products:read" });
     const products = await listBrandProducts(brand.id);
     return NextResponse.json({ products });
-  } catch {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Failed";
+    if (msg === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (msg === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { brand } = await requireBrand();
+    const { brand } = await requireBrand({ permission: "products:write" });
     const body = await req.json();
     if (!body.name) {
       return NextResponse.json({ error: "name required" }, { status: 400 });
@@ -31,13 +38,16 @@ export async function POST(req: NextRequest) {
     if (msg === "UNAUTHORIZED") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (msg === "FORBIDDEN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 }
 
 export async function DELETE(req: NextRequest) {
   try {
-    const { brand } = await requireBrand();
+    const { brand } = await requireBrand({ permission: "products:write" });
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
     if (!id) {

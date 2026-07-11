@@ -3,14 +3,18 @@ import path from "path";
 import { nanoid } from "nanoid";
 import type {
   Brand,
+  BrandMember,
   BrandPlan,
   BrandSession,
   Product,
   ProductCategory,
   ProductVariant,
+  StudioSkinConfig,
+  TeamRole,
   WhiteLabelConfig,
 } from "./types";
 import { getDb } from "./db";
+import { PLAN_SEAT_LIMITS } from "./rbac";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const BRANDS_FILE = path.join(DATA_DIR, "brands.json");
@@ -36,47 +40,178 @@ function defaultWhiteLabel(name: string, subdomain: string): WhiteLabelConfig {
   };
 }
 
+export function defaultStudioSkin(
+  name: string,
+  wl?: Partial<WhiteLabelConfig>
+): StudioSkinConfig {
+  return {
+    enabled: true,
+    studioName: `${name} Mirror Studio`,
+    headline: "Try on in your light",
+    subheadline:
+      "Front-facing mirror camera with brand-true colour — play before you buy.",
+    defaultLook: "brand",
+    frameColor: wl?.backgroundColor || "#f4f4f2",
+    ringLightColor: "#ffffff",
+    panelColor: wl?.backgroundColor || "#faf7f2",
+    textColor: wl?.primaryColor || "#1a1612",
+    accentColor: wl?.accentColor || "#c4a574",
+    buttonColor: wl?.primaryColor || "#1a1612",
+    buttonTextColor: "#faf7f2",
+    logoUrl: wl?.logoUrl || "/icons/lumea-mark.svg",
+    watermark: name,
+    showPoweredBy: true,
+    defaultBrightness: 1.12,
+    defaultIntensity: 0.42,
+  };
+}
+
+function makeOwnerMember(
+  brandId: string,
+  email: string,
+  name: string,
+  password: string
+): BrandMember {
+  const now = new Date().toISOString();
+  return {
+    id: `owner-${brandId}`,
+    brandId,
+    email,
+    name,
+    password,
+    role: "owner",
+    status: "active",
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function migrateBrand(b: Brand): Brand {
+  const plan = b.plan || "starter";
+  const seatLimit = b.seatLimit || PLAN_SEAT_LIMITS[plan];
+  const whiteLabel = b.whiteLabel || defaultWhiteLabel(b.name, b.slug);
+  const studioSkin =
+    b.studioSkin || defaultStudioSkin(b.name, whiteLabel);
+  let members = Array.isArray(b.members) ? b.members : [];
+  if (!members.some((m) => m.role === "owner")) {
+    members = [
+      makeOwnerMember(b.id, b.email, b.contactName || b.name, b.password),
+      ...members,
+    ];
+  }
+  return {
+    ...b,
+    whiteLabel,
+    studioSkin,
+    seatLimit,
+    members,
+  };
+}
+
 function seedBrands(): Brand[] {
   const now = new Date().toISOString();
-  return [
-    {
-      id: "brand-lumea",
-      slug: "lumea",
-      name: "LUMÉA House",
-      email: "brands@lumea.beauty",
-      password: "lumea-demo",
-      contactName: "LUMÉA Ops",
-      website: "https://lumea.beauty",
-      plan: "enterprise",
-      status: "active",
-      whiteLabel: defaultWhiteLabel("LUMÉA", "lumea"),
-      productCount: 0,
-      createdAt: now,
-      updatedAt: now,
+  const lumeaWl = defaultWhiteLabel("LUMÉA", "lumea");
+  const glowWl: WhiteLabelConfig = {
+    ...defaultWhiteLabel("GlowLab", "glowlab"),
+    tagline: "Glow for every hour.",
+    primaryColor: "#2a1f3d",
+    accentColor: "#e8a0c8",
+    backgroundColor: "#faf5f8",
+    supportEmail: "hello@glowlab.demo",
+  };
+
+  const lumea: Brand = {
+    id: "brand-lumea",
+    slug: "lumea",
+    name: "LUMÉA House",
+    email: "brands@lumea.beauty",
+    password: "lumea-demo",
+    contactName: "LUMÉA Ops",
+    website: "https://lumea.beauty",
+    plan: "enterprise",
+    status: "active",
+    whiteLabel: lumeaWl,
+    studioSkin: defaultStudioSkin("LUMÉA", lumeaWl),
+    seatLimit: PLAN_SEAT_LIMITS.enterprise,
+    members: [
+      makeOwnerMember(
+        "brand-lumea",
+        "brands@lumea.beauty",
+        "LUMÉA Ops",
+        "lumea-demo"
+      ),
+    ],
+    productCount: 0,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const glowOwner = makeOwnerMember(
+    "brand-demo-glow",
+    "partner@glowlab.demo",
+    "Ava Partner",
+    "glowlab-demo"
+  );
+  const glowEditor: BrandMember = {
+    id: "member-glow-editor",
+    brandId: "brand-demo-glow",
+    email: "editor@glowlab.demo",
+    name: "Sam Editor",
+    password: "editor-demo",
+    role: "editor",
+    status: "active",
+    invitedBy: glowOwner.id,
+    createdAt: now,
+    updatedAt: now,
+  };
+  const glowViewer: BrandMember = {
+    id: "member-glow-viewer",
+    brandId: "brand-demo-glow",
+    email: "viewer@glowlab.demo",
+    name: "Rio Viewer",
+    password: "viewer-demo",
+    role: "viewer",
+    status: "active",
+    invitedBy: glowOwner.id,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const glow: Brand = {
+    id: "brand-demo-glow",
+    slug: "glowlab",
+    name: "GlowLab Beauty",
+    email: "partner@glowlab.demo",
+    password: "glowlab-demo",
+    contactName: "Ava Partner",
+    website: "https://glowlab.demo",
+    plan: "growth",
+    status: "active",
+    whiteLabel: glowWl,
+    studioSkin: {
+      ...defaultStudioSkin("GlowLab", glowWl),
+      studioName: "GlowLab Mirror Studio",
+      headline: "Glow in real light",
+      subheadline:
+        "Brand-skinned try-on — pink vanity accents, true colour for every undertone.",
+      defaultLook: "brand",
+      frameColor: "#faf5f8",
+      ringLightColor: "#ffe8f4",
+      panelColor: "#faf5f8",
+      textColor: "#2a1f3d",
+      accentColor: "#e8a0c8",
+      buttonColor: "#2a1f3d",
+      buttonTextColor: "#faf5f8",
+      watermark: "GlowLab",
     },
-    {
-      id: "brand-demo-glow",
-      slug: "glowlab",
-      name: "GlowLab Beauty",
-      email: "partner@glowlab.demo",
-      password: "glowlab-demo",
-      contactName: "Ava Partner",
-      website: "https://glowlab.demo",
-      plan: "growth",
-      status: "active",
-      whiteLabel: {
-        ...defaultWhiteLabel("GlowLab", "glowlab"),
-        tagline: "Glow for every hour.",
-        primaryColor: "#2a1f3d",
-        accentColor: "#e8a0c8",
-        backgroundColor: "#faf5f8",
-        supportEmail: "hello@glowlab.demo",
-      },
-      productCount: 0,
-      createdAt: now,
-      updatedAt: now,
-    },
-  ];
+    seatLimit: PLAN_SEAT_LIMITS.growth,
+    members: [glowOwner, glowEditor, glowViewer],
+    productCount: 0,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  return [lumea, glow];
 }
 
 async function ensureBrandDb(): Promise<BrandDb> {
@@ -85,11 +220,69 @@ async function ensureBrandDb(): Promise<BrandDb> {
     const raw = await fs.readFile(BRANDS_FILE, "utf-8");
     const db = JSON.parse(raw) as BrandDb;
     if (!db.brands?.length) throw new Error("empty");
+    let dirty = false;
+    db.brands = db.brands.map((b) => {
+      const m = migrateBrand(b as Brand);
+      if (
+        !b.studioSkin ||
+        !Array.isArray(b.members) ||
+        !b.seatLimit
+      ) {
+        dirty = true;
+      }
+      return m;
+    });
+    // Ensure demo team seats exist on glowlab after migration of old files
+    const glow = db.brands.find((b) => b.id === "brand-demo-glow");
+    if (glow && glow.members.length < 2) {
+      const now = new Date().toISOString();
+      if (!glow.members.some((m) => m.email === "editor@glowlab.demo")) {
+        glow.members.push({
+          id: "member-glow-editor",
+          brandId: glow.id,
+          email: "editor@glowlab.demo",
+          name: "Sam Editor",
+          password: "editor-demo",
+          role: "editor",
+          status: "active",
+          createdAt: now,
+          updatedAt: now,
+        });
+        dirty = true;
+      }
+      if (!glow.members.some((m) => m.email === "viewer@glowlab.demo")) {
+        glow.members.push({
+          id: "member-glow-viewer",
+          brandId: glow.id,
+          email: "viewer@glowlab.demo",
+          name: "Rio Viewer",
+          password: "viewer-demo",
+          role: "viewer",
+          status: "active",
+          createdAt: now,
+          updatedAt: now,
+        });
+        dirty = true;
+      }
+      if (!glow.studioSkin || glow.studioSkin.studioName.includes("LUMÉA")) {
+        glow.studioSkin = {
+          ...defaultStudioSkin("GlowLab", glow.whiteLabel),
+          studioName: "GlowLab Mirror Studio",
+          headline: "Glow in real light",
+          accentColor: "#e8a0c8",
+          textColor: "#2a1f3d",
+          buttonColor: "#2a1f3d",
+          frameColor: "#faf5f8",
+          panelColor: "#faf5f8",
+        };
+        dirty = true;
+      }
+    }
+    if (dirty) await saveBrandDb(db);
     return db;
   } catch {
     const db: BrandDb = { brands: seedBrands(), sessions: [] };
     await fs.writeFile(BRANDS_FILE, JSON.stringify(db, null, 2));
-    // Seed demo partner catalogue once
     await seedDemoPartnerProducts().catch(() => {});
     return db;
   }
@@ -179,9 +372,18 @@ export async function listBrands() {
   return db.brands.map(publicBrand);
 }
 
-function publicBrand(b: Brand) {
-  const { password: _, ...rest } = b;
+function publicMember(m: BrandMember) {
+  const { password: _, ...rest } = m;
   return rest;
+}
+
+function publicBrand(b: Brand) {
+  const { password: _, members, ...rest } = b;
+  return {
+    ...rest,
+    members: (members || []).map(publicMember),
+    seatsUsed: (members || []).filter((m) => m.status !== "disabled").length,
+  };
 }
 
 export async function getBrandById(id: string) {
@@ -239,46 +441,91 @@ export async function registerBrand(input: {
   }
 
   const now = new Date().toISOString();
+  const plan = input.plan || "starter";
+  const wl = defaultWhiteLabel(input.name, slug);
+  const brandId = nanoid(12);
+  const owner = makeOwnerMember(
+    brandId,
+    input.email,
+    input.contactName,
+    input.password
+  );
   const brand: Brand = {
-    id: nanoid(12),
+    id: brandId,
     slug,
     name: input.name,
     email: input.email,
     password: input.password,
     contactName: input.contactName,
     website: input.website || "",
-    plan: input.plan || "starter",
+    plan,
     status: "active",
-    whiteLabel: defaultWhiteLabel(input.name, slug),
+    whiteLabel: wl,
+    studioSkin: defaultStudioSkin(input.name, wl),
+    seatLimit: PLAN_SEAT_LIMITS[plan],
+    members: [owner],
     productCount: 0,
     createdAt: now,
     updatedAt: now,
   };
   db.brands.unshift(brand);
   await saveBrandDb(db);
-  const session = await createSession(brand.id, brand.email);
+  const session = await createSession(brand.id, owner);
   return { brand: publicBrand(brand), session };
 }
 
 export async function loginBrand(email: string, password: string) {
+  const db = await ensureBrandDb();
+  const emailLower = email.toLowerCase();
+
+  // Prefer team member login
+  for (const brand of db.brands) {
+    if (brand.status === "suspended") continue;
+    const member = (brand.members || []).find(
+      (m) =>
+        m.email.toLowerCase() === emailLower &&
+        m.password === password &&
+        m.status === "active"
+    );
+    if (member) {
+      member.lastLoginAt = new Date().toISOString();
+      await saveBrandDb(db);
+      const session = await createSession(brand.id, member);
+      return {
+        brand: publicBrand(brand),
+        session,
+        member: publicMember(member),
+      };
+    }
+  }
+
+  // Fallback: brand root credentials as owner
   const brand = await getBrandByEmail(email);
   if (!brand || brand.password !== password) {
     throw new Error("Invalid email or password");
   }
   if (brand.status === "suspended") throw new Error("Account suspended");
-  const session = await createSession(brand.id, brand.email);
-  return { brand: publicBrand(brand), session };
+  const owner =
+    brand.members.find((m) => m.role === "owner") ||
+    makeOwnerMember(brand.id, brand.email, brand.contactName, brand.password);
+  const session = await createSession(brand.id, owner);
+  return { brand: publicBrand(brand), session, member: publicMember(owner) };
 }
 
-async function createSession(brandId: string, email: string) {
+async function createSession(brandId: string, member: BrandMember) {
   const db = await ensureBrandDb();
   const session: BrandSession = {
     brandId,
-    email,
+    email: member.email,
     token: nanoid(32),
+    memberId: member.id,
+    role: member.role,
     createdAt: new Date().toISOString(),
   };
-  db.sessions = db.sessions.filter((s) => s.brandId !== brandId);
+  // Keep other members' sessions; replace same member sessions
+  db.sessions = db.sessions.filter(
+    (s) => !(s.brandId === brandId && s.memberId === member.id)
+  );
   db.sessions.push(session);
   await saveBrandDb(db);
   return session;
@@ -291,7 +538,20 @@ export async function getSession(token: string | null | undefined) {
   if (!session) return null;
   const brand = db.brands.find((b) => b.id === session.brandId);
   if (!brand) return null;
-  return { session, brand: publicBrand(brand) as Omit<Brand, "password"> & { password?: string }, full: brand };
+  const member =
+    brand.members?.find((m) => m.id === session.memberId) ||
+    brand.members?.find((m) => m.role === "owner");
+  if (!member || member.status === "disabled") return null;
+  // Backfill legacy sessions
+  if (!session.role) session.role = member.role;
+  if (!session.memberId) session.memberId = member.id;
+  return {
+    session,
+    brand: publicBrand(brand),
+    full: brand,
+    member: publicMember(member),
+    role: member.role as TeamRole,
+  };
 }
 
 export async function logoutBrand(token: string) {
@@ -304,7 +564,10 @@ export async function updateBrand(
   brandId: string,
   patch: Partial<
     Pick<Brand, "name" | "contactName" | "website" | "plan" | "status">
-  > & { whiteLabel?: Partial<WhiteLabelConfig> }
+  > & {
+    whiteLabel?: Partial<WhiteLabelConfig>;
+    studioSkin?: Partial<StudioSkinConfig>;
+  }
 ) {
   const db = await ensureBrandDb();
   const idx = db.brands.findIndex((b) => b.id === brandId);
@@ -331,16 +594,143 @@ export async function updateBrand(
     patch.whiteLabel.customDomain = domain;
   }
 
+  if (patch.plan) {
+    db.brands[idx].seatLimit = PLAN_SEAT_LIMITS[patch.plan];
+  }
+
   db.brands[idx] = {
     ...db.brands[idx],
     ...patch,
     whiteLabel: patch.whiteLabel
       ? { ...db.brands[idx].whiteLabel, ...patch.whiteLabel }
       : db.brands[idx].whiteLabel,
+    studioSkin: patch.studioSkin
+      ? { ...db.brands[idx].studioSkin, ...patch.studioSkin }
+      : db.brands[idx].studioSkin,
     updatedAt: new Date().toISOString(),
   };
   await saveBrandDb(db);
   return publicBrand(db.brands[idx]);
+}
+
+// ── Team seats ────────────────────────────────────────────
+export async function listTeam(brandId: string) {
+  const brand = await getBrandById(brandId);
+  if (!brand) throw new Error("Brand not found");
+  return {
+    members: brand.members.map(publicMember),
+    seatLimit: brand.seatLimit,
+    seatsUsed: brand.members.filter((m) => m.status !== "disabled").length,
+    plan: brand.plan,
+  };
+}
+
+export async function inviteTeamMember(
+  brandId: string,
+  input: {
+    email: string;
+    name: string;
+    role: TeamRole;
+    password?: string;
+    invitedBy?: string;
+  }
+) {
+  const db = await ensureBrandDb();
+  const idx = db.brands.findIndex((b) => b.id === brandId);
+  if (idx === -1) throw new Error("Brand not found");
+  const brand = db.brands[idx];
+
+  if (input.role === "owner") {
+    throw new Error("Cannot invite another owner");
+  }
+
+  const active = brand.members.filter((m) => m.status !== "disabled").length;
+  if (active >= brand.seatLimit) {
+    throw new Error(
+      `Seat limit reached (${brand.seatLimit} on ${brand.plan} plan)`
+    );
+  }
+
+  const email = input.email.toLowerCase().trim();
+  if (brand.members.some((m) => m.email.toLowerCase() === email)) {
+    throw new Error("Member already on this brand");
+  }
+
+  // Cross-brand email uniqueness for simplicity
+  for (const b of db.brands) {
+    if (b.members.some((m) => m.email.toLowerCase() === email)) {
+      throw new Error("Email already used on another brand");
+    }
+  }
+
+  const now = new Date().toISOString();
+  const member: BrandMember = {
+    id: nanoid(10),
+    brandId,
+    email,
+    name: input.name,
+    password: input.password || `temp-${nanoid(6)}`,
+    role: input.role,
+    status: "invited",
+    invitedBy: input.invitedBy,
+    createdAt: now,
+    updatedAt: now,
+  };
+  brand.members.push(member);
+  brand.updatedAt = now;
+  await saveBrandDb(db);
+  return {
+    member: publicMember(member),
+    tempPassword: member.password,
+  };
+}
+
+export async function updateTeamMember(
+  brandId: string,
+  memberId: string,
+  patch: Partial<Pick<BrandMember, "name" | "role" | "status" | "password">>
+) {
+  const db = await ensureBrandDb();
+  const brand = db.brands.find((b) => b.id === brandId);
+  if (!brand) throw new Error("Brand not found");
+  const mIdx = brand.members.findIndex((m) => m.id === memberId);
+  if (mIdx === -1) throw new Error("Member not found");
+  const member = brand.members[mIdx];
+
+  if (member.role === "owner" && patch.role && patch.role !== "owner") {
+    throw new Error("Cannot demote the owner");
+  }
+  if (member.role === "owner" && patch.status === "disabled") {
+    throw new Error("Cannot disable the owner");
+  }
+  if (patch.role === "owner" && member.role !== "owner") {
+    throw new Error("Cannot promote to owner via this endpoint");
+  }
+
+  brand.members[mIdx] = {
+    ...member,
+    ...patch,
+    updatedAt: new Date().toISOString(),
+  };
+  brand.updatedAt = new Date().toISOString();
+  await saveBrandDb(db);
+  return publicMember(brand.members[mIdx]);
+}
+
+export async function removeTeamMember(brandId: string, memberId: string) {
+  const db = await ensureBrandDb();
+  const brand = db.brands.find((b) => b.id === brandId);
+  if (!brand) throw new Error("Brand not found");
+  const member = brand.members.find((m) => m.id === memberId);
+  if (!member) throw new Error("Member not found");
+  if (member.role === "owner") throw new Error("Cannot remove owner");
+
+  brand.members = brand.members.filter((m) => m.id !== memberId);
+  brand.updatedAt = new Date().toISOString();
+  // Drop their sessions
+  db.sessions = db.sessions.filter((s) => s.memberId !== memberId);
+  await saveBrandDb(db);
+  return { ok: true };
 }
 
 export async function listBrandProducts(brandId: string) {

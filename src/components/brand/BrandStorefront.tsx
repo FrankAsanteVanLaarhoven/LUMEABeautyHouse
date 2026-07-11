@@ -47,7 +47,10 @@ export function BrandStorefront({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-[10px] uppercase tracking-[0.14em]">
-            <Link href="/studio" style={{ color: accent }}>
+            <Link
+              href={`/b/${wl.subdomain}/studio`}
+              style={{ color: accent }}
+            >
               Mirror Studio
             </Link>
             <Link href="/tutorials" style={{ color: primary, opacity: 0.7 }}>
@@ -87,11 +90,11 @@ export function BrandStorefront({
             Shop {products.length} products
           </a>
           <Link
-            href="/studio"
+            href={`/b/${wl.subdomain}/studio`}
             className="border px-6 py-3 text-[11px] font-medium uppercase tracking-[0.16em]"
             style={{ borderColor: `${primary}40`, color: primary }}
           >
-            Open try-on
+            Open branded studio
           </Link>
         </div>
         {wl.customDomain && (

@@ -16,7 +16,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { brand } = await requireBrand();
+    const { brand } = await requireBrand({ permission: "csv:import" });
     const contentType = req.headers.get("content-type") || "";
 
     let csvText = "";

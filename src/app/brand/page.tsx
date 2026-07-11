@@ -79,9 +79,17 @@ export default function BrandAuthPage() {
           <li>· Theme colours, logo, storefront preview</li>
         </ul>
         <p className="mt-8 text-xs text-muted">
-          Demo partner:{" "}
+          Demo — owner:{" "}
           <code className="bg-ivory-deep px-1">partner@glowlab.demo</code> /{" "}
           <code className="bg-ivory-deep px-1">glowlab-demo</code>
+          <br />
+          Editor:{" "}
+          <code className="bg-ivory-deep px-1">editor@glowlab.demo</code> /{" "}
+          <code className="bg-ivory-deep px-1">editor-demo</code>
+          <br />
+          Viewer:{" "}
+          <code className="bg-ivory-deep px-1">viewer@glowlab.demo</code> /{" "}
+          <code className="bg-ivory-deep px-1">viewer-demo</code>
         </p>
         <Link
           href="/platform"

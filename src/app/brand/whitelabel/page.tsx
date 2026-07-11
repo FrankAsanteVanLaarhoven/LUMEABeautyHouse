@@ -1,30 +1,21 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BrandShell } from "@/components/brand/BrandShell";
-import type { Brand, WhiteLabelConfig } from "@/lib/types";
+import { useBrandPortal } from "@/hooks/useBrandPortal";
+import type { WhiteLabelConfig } from "@/lib/types";
 
 export default function BrandWhitelabelPage() {
-  const router = useRouter();
-  const [brand, setBrand] = useState<Omit<Brand, "password"> | null>(null);
+  const { brand, role, member, loading, reload } = useBrandPortal();
   const [wl, setWl] = useState<WhiteLabelConfig | null>(null);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/api/brands/me").then(async (r) => {
-      if (!r.ok) {
-        router.replace("/brand");
-        return;
-      }
-      const d = await r.json();
-      setBrand(d.brand);
-      setWl(d.brand.whiteLabel);
-    });
-  }, [router]);
+    if (brand?.whiteLabel) setWl({ ...brand.whiteLabel });
+  }, [brand]);
 
   async function onSave(e: FormEvent) {
     e.preventDefault();
@@ -40,8 +31,8 @@ export default function BrandWhitelabelPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Save failed");
-      setBrand(data.brand);
       setWl(data.brand.whiteLabel);
+      await reload();
       setMsg("White-label settings saved");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
@@ -50,14 +41,14 @@ export default function BrandWhitelabelPage() {
     }
   }
 
-  if (!brand || !wl) {
+  if (loading || !brand || !wl) {
     return <div className="p-16 text-center text-muted">Loading…</div>;
   }
 
   const previewPath = `/b/${wl.subdomain}`;
 
   return (
-    <BrandShell brand={brand}>
+    <BrandShell brand={brand} role={role} memberName={member?.name}>
       <div className="mb-8">
         <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-dim)]">
           Domains & theme

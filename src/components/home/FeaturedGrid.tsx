@@ -42,15 +42,16 @@ export function DualPromo() {
     <section className="mx-auto grid max-w-[1440px] gap-3 px-5 md:grid-cols-2 md:px-8">
       <PromoTile
         href="/product/lume-glass-lip-oil"
-        video="/videos/hero-model.mp4"
-        poster="/images/hero-model.jpg"
+        video="/videos/campaign-lips.mp4"
+        poster="/images/campaign-lips.jpg"
         eyebrow={t("home.lips")}
         title={t("home.glassMoves")}
         cta={t("home.shopGlass")}
       />
       <PromoTile
         href="/shop?category=skin"
-        image="/images/skincare-still.jpg"
+        video="/videos/campaign-glow.mp4"
+        poster="/images/campaign-glow.jpg"
         eyebrow={t("home.skin")}
         title={t("home.clinical")}
         cta={t("home.exploreSkin")}
@@ -189,17 +190,17 @@ export function Categories() {
     {
       href: "/shop?category=makeup",
       label: t("nav.makeup"),
-      img: "/images/product-contour.jpg",
+      img: "/images/campaign-glow.jpg",
     },
     {
       href: "/shop?category=hair",
       label: t("nav.hair"),
-      img: "/images/product-haircare.jpg",
+      img: "/images/campaign-hair.jpg",
     },
     {
       href: "/shop?category=body",
       label: t("nav.body"),
-      img: "/images/product-bodyoil.jpg",
+      img: "/images/campaign-skincare.jpg",
     },
     {
       href: "/shop?category=tools",
@@ -209,12 +210,12 @@ export function Categories() {
     {
       href: "/shop?category=sets",
       label: t("nav.sets"),
-      img: "/images/product-giftset.jpg",
+      img: "/images/campaign-gloss.jpg",
     },
     {
       href: "/studio",
       label: t("nav.studio"),
-      img: "/images/studio-white.jpg",
+      img: "/images/campaign-lips.jpg",
     },
   ];
   return (

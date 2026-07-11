@@ -7,6 +7,8 @@ import {
   Philosophy,
   PromoBanner,
 } from "@/components/home/FeaturedGrid";
+import { CampaignGallery } from "@/components/home/CampaignGallery";
+import { SkinCommunity } from "@/components/home/SkinCommunity";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +17,8 @@ export default async function HomePage() {
   return (
     <>
       <Hero />
+      <CampaignGallery />
+      <SkinCommunity />
       <FeaturedGrid products={products.slice(0, 8)} />
       <DualPromo />
       <Categories />
