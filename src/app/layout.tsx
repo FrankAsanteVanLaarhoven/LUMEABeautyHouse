@@ -55,13 +55,23 @@ export const metadata: Metadata = {
     "lip oil",
   ],
   icons: {
+    // favicon.ico first — browsers & OS link previews request this path specifically
     icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
       { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/icons/lumea-mark.svg", type: "image/svg+xml" },
+      { url: "/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
       { url: "/icon", type: "image/png", sizes: "64x64" },
     ],
-    apple: [{ url: "/apple-icon", type: "image/png", sizes: "180x180" }],
-    shortcut: ["/favicon.svg"],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/apple-icon", type: "image/png", sizes: "180x180" },
+    ],
+    shortcut: ["/favicon.ico"],
+  },
+  manifest: "/site.webmanifest",
+  other: {
+    "msapplication-TileColor": "#1a1612",
   },
   openGraph: {
     title: "LUMÉA — Beauty Without Boundaries",

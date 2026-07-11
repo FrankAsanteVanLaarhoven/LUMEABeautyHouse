@@ -1,13 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="LUMÉA">
   <circle cx="32" cy="32" r="32" fill="#1a1612"/>
-  <text
-    x="32"
-    y="40"
-    text-anchor="middle"
-    font-family="Georgia, 'Times New Roman', serif"
-    font-size="30"
-    font-weight="500"
-    fill="#faf7f2"
-  >L</text>
-  <circle cx="44" cy="18" r="3.5" fill="#c4a574"/>
+  <!-- Geometric L — not a font glyph, not Next.js N -->
+  <rect x="18" y="16" width="9" height="32" fill="#faf7f2"/>
+  <rect x="18" y="39" width="26" height="9" fill="#faf7f2"/>
+  <circle cx="46" cy="18" r="3.5" fill="#c4a574"/>
 </svg>

@@ -28,13 +28,29 @@ export default function OpenGraphImage() {
               borderRadius: "50%",
               background: "#faf7f2",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#1a1612",
-              fontSize: 28,
+              position: "relative",
             }}
           >
-            L
+            <div
+              style={{
+                position: "absolute",
+                left: 16,
+                top: 12,
+                width: 8,
+                height: 30,
+                background: "#1a1612",
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                left: 16,
+                top: 34,
+                width: 22,
+                height: 8,
+                background: "#1a1612",
+              }}
+            />
           </div>
           <div
             style={{

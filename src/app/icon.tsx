@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 export const size = { width: 64, height: 64 };
 export const contentType = "image/png";
 
-/** App icon — LUMÉA mark (never Next.js N) */
+/** Geometric L monogram — never Next.js N */
 export default function Icon() {
   return new ImageResponse(
     (
@@ -19,22 +19,33 @@ export default function Icon() {
           position: "relative",
         }}
       >
-        <div
-          style={{
-            fontSize: 34,
-            fontFamily: "Georgia, serif",
-            color: "#faf7f2",
-            letterSpacing: 1,
-            lineHeight: 1,
-            marginTop: 2,
-          }}
-        >
-          L
-        </div>
+        {/* Vertical bar of L */}
         <div
           style={{
             position: "absolute",
-            top: 12,
+            left: 18,
+            top: 16,
+            width: 9,
+            height: 32,
+            background: "#faf7f2",
+          }}
+        />
+        {/* Foot of L */}
+        <div
+          style={{
+            position: "absolute",
+            left: 18,
+            top: 39,
+            width: 26,
+            height: 9,
+            background: "#faf7f2",
+          }}
+        />
+        {/* Champagne accent */}
+        <div
+          style={{
+            position: "absolute",
+            top: 14,
             right: 14,
             width: 7,
             height: 7,
