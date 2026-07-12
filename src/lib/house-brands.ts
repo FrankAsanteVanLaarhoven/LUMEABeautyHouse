@@ -181,6 +181,9 @@ export const PRODUCT_BRAND_MAP: Record<string, string> = {
   "pro-tool-starter-kit": "edge-works",
   "body-spa-soft-set": "velvet-north",
   "velvet-hand-creme": "velvet-north",
+  "lift-frame-lash-curler": "edge-works",
+  "polish-sugar-body-scrub": "velvet-north",
+  "pure-reset-brush-cleaner": "edge-works",
 };
 
 export function getHouseBrand(slug: string): HouseBrand | undefined {
