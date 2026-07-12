@@ -30,14 +30,17 @@ export function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
 
-  const nav = [
+  // Primary categories — always first so Makeup/Skin never scroll off
+  const primaryNav = [
     { href: "/shop?category=makeup", label: t("nav.makeup") },
     { href: "/shop?category=skin", label: t("nav.skin") },
     { href: "/shop?category=hair", label: t("nav.hair") },
     { href: "/shop?category=body", label: t("nav.body") },
     { href: "/shop?category=tools", label: t("nav.tools") },
     { href: "/shop?category=sets", label: t("nav.sets") },
-    { href: "/brands", label: "Brands" },
+    { href: "/brands", label: t("nav.brands") },
+  ];
+  const discoverNav = [
     { href: "/quiz", label: t("nav.quiz") },
     { href: "/concerns", label: t("nav.concerns") },
     { href: "/routines", label: t("nav.routines") },
@@ -46,6 +49,8 @@ export function Header() {
     { href: "/studio", label: t("nav.studio") },
     { href: "/tutorials", label: t("nav.tutorials") },
   ];
+  // Mobile / tablet strip: categories first, then discover
+  const nav = [...primaryNav, ...discoverNav];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -144,9 +149,9 @@ export function Header() {
             <Link
               href="/brand"
               className="hidden px-1 text-[10px] uppercase tracking-[0.14em] text-champagne transition hover:text-ink xl:inline"
-              title="Brand portal"
+              title="Partner brand portal"
             >
-              Brands
+              Partners
             </Link>
             <Link
               href="/admin"
@@ -169,50 +174,79 @@ export function Header() {
           </div>
         </div>
 
-        {/* Row 2: full-width nav — never overlaps logo */}
+        {/* Row 2: categories — Makeup & Skin always first, no horizontal clip */}
         <nav className="hidden border-t border-line/80 lg:block">
-          <div className="mx-auto flex max-w-[1440px] items-center justify-center gap-1 overflow-x-auto px-4 py-2.5 md:px-8 md:gap-2">
-            {nav.map((item) => (
+          <div className="mx-auto max-w-[1440px] px-4 md:px-8">
+            <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 py-2">
+              {primaryNav.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="shrink-0 whitespace-nowrap px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.16em] text-ink transition-colors hover:bg-sand/40"
+                >
+                  {item.label}
+                </Link>
+              ))}
+              <span className="mx-1 hidden h-3 w-px shrink-0 bg-line sm:inline" />
+              <Link
+                href="/shop"
+                className="shrink-0 whitespace-nowrap px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.16em] text-ink transition-colors hover:bg-sand/40"
+              >
+                {t("nav.shopAll")}
+              </Link>
+            </div>
+            {/* Discovery row — secondary, wraps instead of hiding Makeup/Skin */}
+            <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 border-t border-line/50 pb-2 pt-1.5">
+              {discoverNav.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="shrink-0 whitespace-nowrap px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-ink-soft transition-colors hover:bg-sand/40 hover:text-ink"
+                >
+                  {item.label}
+                </Link>
+              ))}
+              <Link
+                href="/list"
+                className="shrink-0 whitespace-nowrap px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-ink-soft transition-colors hover:bg-sand/40 hover:text-ink"
+              >
+                {t("nav.list")}
+              </Link>
+              <Link
+                href="/glow"
+                className="shrink-0 whitespace-nowrap px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-champagne transition-colors hover:bg-sand/40"
+              >
+                {t("nav.glow")}
+              </Link>
+              <Link
+                href="/platform"
+                className="shrink-0 whitespace-nowrap px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-champagne transition-colors hover:bg-sand/40"
+              >
+                {t("nav.platform")}
+              </Link>
+            </div>
+          </div>
+        </nav>
+
+        {/* Tablet/mobile: categories first so Makeup & Skin are not cut off */}
+        <nav className="border-t border-line/80 lg:hidden">
+          <div className="flex gap-1 overflow-x-auto px-3 py-2 scrollbar-none">
+            {primaryNav.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="shrink-0 whitespace-nowrap px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.16em] text-ink-soft transition-colors hover:bg-sand/40 hover:text-ink"
+                className="shrink-0 whitespace-nowrap rounded-full border border-ink bg-ink px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-ivory"
               >
                 {item.label}
               </Link>
             ))}
-            <span className="mx-1 h-3 w-px shrink-0 bg-line" />
             <Link
               href="/shop"
-              className="shrink-0 whitespace-nowrap px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.16em] text-ink transition-colors hover:bg-sand/40"
+              className="shrink-0 whitespace-nowrap rounded-full border border-line px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-ink-soft"
             >
               {t("nav.shopAll")}
             </Link>
-            <Link
-              href="/list"
-              className="shrink-0 whitespace-nowrap px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.16em] text-ink-soft transition-colors hover:bg-sand/40 hover:text-ink"
-            >
-              {t("nav.list")}
-            </Link>
-            <Link
-              href="/glow"
-              className="shrink-0 whitespace-nowrap px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.16em] text-champagne transition-colors hover:bg-sand/40"
-            >
-              {t("nav.glow")}
-            </Link>
-            <Link
-              href="/platform"
-              className="shrink-0 whitespace-nowrap px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.16em] text-champagne transition-colors hover:bg-sand/40"
-            >
-              {t("nav.platform")}
-            </Link>
-          </div>
-        </nav>
-
-        {/* Tablet: scrollable single-row category strip */}
-        <nav className="border-t border-line/80 lg:hidden">
-          <div className="flex gap-1 overflow-x-auto px-3 py-2 scrollbar-none">
-            {nav.map((item) => (
+            {discoverNav.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
