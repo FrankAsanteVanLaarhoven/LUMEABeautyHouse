@@ -122,7 +122,7 @@ const en = {
   "home.heroTitle2": "every",
   "home.heroTitle3": "face.",
   "home.heroSub":
-    "Inclusive shade architecture. Clinical care. Quiet luxury that moves — a beauty house engineered beyond the ordinary.",
+    "Fifty undertones. Clinical care. Quiet luxury in motion — a beauty house designed for every face, hair texture, and light.",
   "home.ctaShop": "Shop the collection",
   "home.ctaVeil": "Discover Veil",
   "home.shadeCount": "50 foundation shades · 18 lip tones",
@@ -135,11 +135,14 @@ const en = {
   "home.skin": "Skin",
   "home.clinical": "Clinical calm. Visible light.",
   "home.exploreSkin": "Explore skin",
-  "home.philosophy": "Our philosophy",
+  "home.philosophy": "About LUMÉA",
   "home.notMore": "Not more makeup.",
   "home.moreYou": "More you — refined.",
   "home.philosophyBody":
-    "LUMÉA exists for the full spectrum of human skin. Fifty foundation undertones. Clinical actives without clinical coldness. Packaging that feels like sculpture. Motion, light, and craft — never spectacle for its own sake.",
+    "LUMÉA is an inclusive luxury beauty house for the full spectrum of human skin and hair. Fifty foundation undertones. Clinical actives without clinical coldness. Hair rituals that respect coils, waves, and fine textures. Packaging that feels like sculpture — motion, light, and craft over noise.",
+  "home.aboutLead":
+    "We build shade systems, try-on tools, and rituals so every woman — deep brown, Asian, Hispanic, fair, olive, warm, cool — finds herself in the mirror first, then in the bag.",
+  "home.aboutCta": "Read our story",
   "home.statShades": "Foundation shades",
   "home.statWear": "Wear tested",
   "home.statCruelty": "Cruelty free",
@@ -214,9 +217,12 @@ const en = {
 
   // Checkout
   "checkout.title": "Checkout",
-  "checkout.sub": "Secure checkout — stock updates instantly on place order.",
+  "checkout.sub": "Secure checkout — PayPal, card, or wallet. Stock updates when your order is placed.",
   "checkout.nothing": "Nothing to checkout",
   "checkout.contact": "Contact",
+  "checkout.payPaypal": "Pay with PayPal",
+  "checkout.paypalRedirect": "Redirecting to PayPal…",
+  "checkout.method": "Payment method",
   "checkout.email": "Email",
   "checkout.phone": "Phone",
   "checkout.shipping": "Shipping",
@@ -257,7 +263,7 @@ const en = {
   "footer.shop": "Shop",
   "footer.house": "House",
   "footer.care": "Care",
-  "footer.philosophy": "Philosophy",
+  "footer.philosophy": "About",
   "footer.shadeFinder": "Shade Finder",
   "footer.studio": "Try-On Studio",
   "footer.shipping": "Shipping",
@@ -268,7 +274,7 @@ const en = {
   "footer.emailJoin": "Email for early access",
   "footer.join": "Join",
   "footer.blurb":
-    "Light for every face. A beauty house built on inclusive shade science, clinical care, and quiet luxury — never noise.",
+    "Light for every face. Inclusive shade science, clinical care, and quiet luxury — a beauty house and commerce platform for every undertone.",
   "footer.follow": "Follow us",
   "footer.share": "Share LUMÉA",
 

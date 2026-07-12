@@ -22,7 +22,8 @@ export function Footer() {
     {
       title: t("footer.house"),
       links: [
-        { href: "/#philosophy", label: t("footer.philosophy") },
+        { href: "/about", label: t("footer.philosophy") },
+        { href: "/#philosophy", label: "Philosophy" },
         { href: "/studio", label: t("footer.studio") },
         { href: "/tutorials", label: t("nav.tutorials") },
         { href: "/platform", label: t("nav.platform") },

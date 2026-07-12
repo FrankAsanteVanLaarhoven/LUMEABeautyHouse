@@ -159,6 +159,9 @@ export function Philosophy() {
         <p className="mx-auto mt-8 max-w-xl text-sm leading-relaxed text-ivory/70 md:text-base">
           {t("home.philosophyBody")}
         </p>
+        <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-ivory/55 md:text-base">
+          {t("home.aboutLead")}
+        </p>
         <div className="mx-auto mt-14 grid max-w-2xl grid-cols-3 gap-6 border-t border-ivory/15 pt-10">
           {[
             { n: "50", l: t("home.statShades") },
@@ -173,12 +176,20 @@ export function Philosophy() {
             </div>
           ))}
         </div>
-        <Link
-          href="/studio"
-          className="mt-12 inline-flex border border-ivory/40 px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.18em] text-ivory transition hover:bg-ivory hover:text-ink"
-        >
-          {t("home.tryOnCta")}
-        </Link>
+        <div className="mt-12 flex flex-wrap justify-center gap-3">
+          <Link
+            href="/about"
+            className="inline-flex border border-champagne bg-champagne/15 px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.18em] text-ivory transition hover:bg-champagne hover:text-ink"
+          >
+            {t("home.aboutCta")}
+          </Link>
+          <Link
+            href="/studio"
+            className="inline-flex border border-ivory/40 px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.18em] text-ivory transition hover:bg-ivory hover:text-ink"
+          >
+            {t("home.tryOnCta")}
+          </Link>
+        </div>
       </div>
     </section>
   );

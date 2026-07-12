@@ -23,14 +23,24 @@ function CheckoutInner() {
   const [error, setError] = useState("");
   const [payWithWallet, setPayWithWallet] = useState(false);
   const [stripeOn, setStripeOn] = useState(false);
+  const [paypalOn, setPaypalOn] = useState(true);
+  const [paypalLoading, setPaypalLoading] = useState(false);
+  const [method, setMethod] = useState<"card" | "paypal" | "wallet">("paypal");
 
   useEffect(() => {
     fetch("/api/stripe/status")
       .then((r) => r.json())
       .then((d) => setStripeOn(Boolean(d.enabled)))
       .catch(() => {});
+    fetch("/api/checkout/paypal")
+      .then((r) => r.json())
+      .then((d) => setPaypalOn(d.enabled !== false))
+      .catch(() => setPaypalOn(true));
     if (searchParams.get("cancelled") === "1") {
       setError("Stripe payment cancelled — your bag is still here.");
+    }
+    if (searchParams.get("cancelled") === "paypal") {
+      setError("PayPal checkout cancelled — your bag is still here.");
     }
   }, [searchParams]);
 
@@ -83,13 +93,17 @@ function CheckoutInner() {
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (method === "paypal") {
+      await payWithPaypal(e.currentTarget);
+      return;
+    }
     setLoading(true);
     setError("");
     const fd = new FormData(e.currentTarget);
     const shippingAddress = shippingFromForm(fd);
 
     try {
-      if (payWithWallet) {
+      if (method === "wallet" || payWithWallet) {
         const ok = spendWallet(total, `Order checkout`);
         if (!ok) throw new Error(t("wallet.insufficient"));
       }
@@ -121,6 +135,52 @@ function CheckoutInner() {
       setError(err instanceof Error ? err.message : "Checkout failed");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function payWithPaypal(form: HTMLFormElement) {
+    setPaypalLoading(true);
+    setError("");
+    const fd = new FormData(form);
+    const email = String(fd.get("email") || profile?.email || "");
+    if (!email) {
+      setError("Email is required for PayPal checkout");
+      setPaypalLoading(false);
+      return;
+    }
+    try {
+      const res = await fetch("/api/checkout/paypal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          shippingAddress: shippingFromForm(fd),
+          promoCode: promoCode || undefined,
+          notes: fd.get("notes"),
+          items: items.map((i) => ({
+            productId: i.productId,
+            variantId: i.variantId,
+            name: i.name,
+            variantName: i.variantName,
+            sku: i.sku,
+            quantity: i.quantity,
+            unitPrice: i.price,
+            image: i.image,
+          })),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "PayPal checkout failed");
+      if (data.url) {
+        // Cart cleared after PayPal return on success page
+        window.location.href = data.url;
+        return;
+      }
+      throw new Error("No PayPal URL returned");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "PayPal failed");
+    } finally {
+      setPaypalLoading(false);
     }
   }
 
@@ -339,28 +399,81 @@ function CheckoutInner() {
             </div>
           </div>
 
-          {profile && (
-            <label className="mt-4 flex cursor-pointer items-center gap-2 border border-line p-3 text-sm">
-              <input
-                type="checkbox"
-                checked={payWithWallet}
-                onChange={(e) => setPayWithWallet(e.target.checked)}
-                disabled={profile.walletBalance < total}
-              />
-              <span>
-                {t("wallet.payWith")} ({formatPrice(profile.walletBalance)})
-                {profile.walletBalance < total && (
-                  <span className="mt-0.5 block text-xs text-danger">
-                    {t("wallet.insufficient")}
+          <div className="mt-6 border-t border-line pt-4">
+            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
+              {t("checkout.method")}
+            </p>
+            <div className="mt-3 space-y-2">
+              {paypalOn && (
+                <label className="flex cursor-pointer items-center gap-3 border border-line bg-surface p-3 text-sm has-[:checked]:border-ink">
+                  <input
+                    type="radio"
+                    name="payMethod"
+                    checked={method === "paypal"}
+                    onChange={() => {
+                      setMethod("paypal");
+                      setPayWithWallet(false);
+                    }}
+                  />
+                  <span className="flex-1 font-medium">PayPal</span>
+                  <span className="text-[10px] uppercase tracking-[0.1em] text-[#0070ba]">
+                    frankleroyvan@gmail.com
                   </span>
-                )}
-              </span>
-            </label>
-          )}
+                </label>
+              )}
+              <label className="flex cursor-pointer items-center gap-3 border border-line bg-surface p-3 text-sm has-[:checked]:border-ink">
+                <input
+                  type="radio"
+                  name="payMethod"
+                  checked={method === "card"}
+                  onChange={() => {
+                    setMethod("card");
+                    setPayWithWallet(false);
+                  }}
+                />
+                <span className="font-medium">
+                  {stripeOn ? "Card · Stripe" : "Card · place order"}
+                </span>
+              </label>
+              {profile && (
+                <label
+                  className={`flex cursor-pointer items-center gap-3 border border-line bg-surface p-3 text-sm has-[:checked]:border-ink ${
+                    profile.walletBalance < total ? "opacity-50" : ""
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="payMethod"
+                    checked={method === "wallet"}
+                    disabled={profile.walletBalance < total}
+                    onChange={() => {
+                      setMethod("wallet");
+                      setPayWithWallet(true);
+                    }}
+                  />
+                  <span>
+                    {t("wallet.payWith")} ({formatPrice(profile.walletBalance)})
+                  </span>
+                </label>
+              )}
+            </div>
+          </div>
 
           {error && <p className="mt-4 text-sm text-danger">{error}</p>}
 
-          {stripeOn && !payWithWallet && (
+          {method === "paypal" && (
+            <button
+              type="submit"
+              disabled={paypalLoading || loading}
+              className="mt-6 w-full bg-[#0070ba] px-6 py-3.5 text-[11px] font-medium uppercase tracking-[0.16em] text-white transition hover:bg-[#005ea6] disabled:opacity-50"
+            >
+              {paypalLoading
+                ? t("checkout.paypalRedirect")
+                : `${t("checkout.payPaypal")} · ${formatPrice(total)}`}
+            </button>
+          )}
+
+          {method === "card" && stripeOn && (
             <button
               type="button"
               disabled={stripeLoading || loading}
@@ -381,21 +494,31 @@ function CheckoutInner() {
             </button>
           )}
 
-          <button
-            type="submit"
-            disabled={loading || stripeLoading}
-            className="btn-primary mt-3 w-full"
-          >
-            {loading
-              ? t("checkout.placing")
-              : stripeOn
-                ? `Pay without Stripe · ${formatPrice(total)}`
+          {(method === "card" && !stripeOn) || method === "wallet" ? (
+            <button
+              type="submit"
+              disabled={loading || stripeLoading || paypalLoading}
+              className="btn-primary mt-3 w-full"
+            >
+              {loading
+                ? t("checkout.placing")
                 : t("checkout.pay", { amount: formatPrice(total) })}
-          </button>
+            </button>
+          ) : null}
+
+          {method === "card" && stripeOn && (
+            <button
+              type="submit"
+              disabled={loading || stripeLoading}
+              className="btn-ghost mt-2 w-full"
+            >
+              Place order without Stripe
+            </button>
+          )}
+
           <p className="mt-3 text-center text-[10px] text-muted">
-            {stripeOn
-              ? "Secure card payments via Stripe Checkout"
-              : "Demo checkout · add STRIPE_SECRET_KEY for live cards"}
+            PayPal merchant · frankleroyvan@gmail.com
+            {stripeOn ? " · Stripe cards available" : ""}
           </p>
           <p className="mt-2 text-center text-[10px] text-muted">
             Codes LUME15 · LUME25 · WELCOME10 · NYMA15 · COILS20

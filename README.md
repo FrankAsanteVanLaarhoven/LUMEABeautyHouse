@@ -1,63 +1,67 @@
-# LUMÉA — Beauty Without Boundaries
+# LUMÉA Beauty House
 
-A professional-grade beauty e-commerce platform inspired by (and designed to surpass) Fenty-class storefronts: cinematic motion, minimalist luxury UI, inclusive shade architecture, and a full Shopify-style operations backend.
+**Light for every face.**
+
+LUMÉA is an inclusive luxury beauty house and multi-tenant commerce platform: cinematic storefront, shade-true makeup and hair care, live Mirror Studio try-on, and Shopify-class operations for the house brand and partner labels.
+
+| | |
+|---|---|
+| **Live** | [lumea-beige.vercel.app](https://lumea-beige.vercel.app) |
+| **Repo** | [LUMEABeautyHouse](https://github.com/FrankAsanteVanLaarhoven/LUMEABeautyHouse) |
+| **Local** | `http://localhost:3006` |
+| **PayPal** | `frankleroyvan@gmail.com` |
+
+---
+
+## About the house
+
+LUMÉA exists for the full spectrum of human skin and hair. Too many shelves still treat inclusive shade ranges as an afterthought — ash foundations, missing undertones, hair rituals written for one texture. We reverse that: start with every face, then engineer formulas, packaging, and digital tools that honour them.
+
+**What we stand for**
+
+- **Inclusive by design** — Fifty foundation undertones. Hair rituals for coils, waves, and fine textures.
+- **Clinical calm** — Actives that earn their place, without clinical coldness.
+- **Try before you buy** — Mirror Studio, match quiz, and reviews tagged by real skin and hair.
+- **Quiet luxury** — Ivory, champagne, craft — motion with purpose, never noise.
+
+---
 
 ## Brand
 
 | | |
 |---|---|
 | **Name** | **LUMÉA** (loo-MAY-ah) |
-| **Tagline** | Light for every face. / Beauty without boundaries. |
-| **Registerable domains** | `lumea.beauty` · `getlumea.com` · `shoplumea.com` · `lumeabeauty.com` |
+| **Tagline** | Light for every face. · Beauty without boundaries. |
+| **Domains** | `lumea.beauty` · `getlumea.com` · `shoplumea.com` · `lumeabeauty.com` |
 | **Aesthetic** | Ivory · champagne gold · soft blush · ink charcoal |
 | **Type** | Cormorant Garamond (display) · DM Sans (UI) |
 
-## Stack
+---
 
-- **Next.js 16** (App Router) + TypeScript + Tailwind CSS v4
-- **Framer Motion** — scroll reveals, drawers, page motion
-- **Zustand** — cart with localStorage persistence
-- **File-backed commerce DB** (`data/store.json`) — products, variants, stock, orders, customers, inventory ledger, promos
-- **Generated media** — campaign stills + hero video loops in `/public`
+## Product surface
 
-## Features
+### Consumer storefront
+- Crossfading **hero reels** (deep brown · Asian · Hispanic · blonde · original glam)
+- Shop by category, concern, gift finder, routines, match quiz
+- PDP: shades, stock, reviews by skin/hair, complete-the-look, subscribe & save
+- Cart with free-shipping progress, abandon recovery, Glow Club loyalty
+- **Checkout:** PayPal (`frankleroyvan@gmail.com`), Stripe (optional keys), LUMÉA Wallet
+- Account, list, wallet, shade matches
+- Mirror Studio try-on · tutorials · community UGC
 
-### Storefront
-- Cinematic hero with autoplay video
-- Featured edit, dual promo tiles, category house grid, philosophy band
-- Shop with category filters + search
-- PDP: shade/size picker, live stock labels, image gallery, quick-add
-- Cart drawer + full bag page
-- Checkout with promo codes, tax, free shipping threshold, stock decrement
-- Account / order confirmation
+### Ops (`/admin`)
+Dashboard, products, inventory, orders, fulfillment, customers.
 
-### Ops Console (`/admin`) — Shopify-style
-- **Dashboard** — revenue, orders, customers, low stock, fulfillment queue
-- **Products** — create / edit / delete, badges, featured flag, images
-- **Inventory** — SKU stock levels, status (ok / low / critical / out), restock adjustments, movement log
-- **Orders** — list, detail, status transitions
-- **Fulfillment** — pick queue, tracking numbers, mark shipped
-- **Customers** — CRM list, LTV, tags, manual client upload/create
+### Brand SaaS (`/brand`)
+Register brands, CSV catalogue, white-label `/b/{slug}`, Mirror Studio skins, team seats (RBAC), billing plans, custom domain verify.
 
-### Promo codes
-- `LUME15` — 15% off $50+
-- `LUME25` — 25% off $75+
-- `WELCOME10` — $10 off
+| Plan | Seats | Products | Domain | From |
+|------|-------|----------|--------|------|
+| Starter | 2 | 50 | Subdomain | $49/mo |
+| Growth | 5 | 500 | Custom | $149/mo |
+| Enterprise | 25 | Unlimited | Custom + VIP | $499/mo |
 
-## Multi-tenant brand platform
-
-| Feature | Path / API |
-|---------|------------|
-| Brand portal (login / register) | `/brand` |
-| Dashboard · products · CSV · white-label | `/brand/dashboard` etc. |
-| White-label storefront | `/b/{subdomain}` e.g. `/b/glowlab` |
-| Branded Mirror Studio | `/b/{subdomain}/studio` |
-| Studio skin config | `/brand/studio` |
-| Team seats (RBAC) | `/brand/team` |
-| CSV template + import | `GET/POST /api/brands/me/products/csv` |
-| Domain resolve | `GET /api/brands/resolve?host=` or `?slug=` |
-
-**Demo partner seats**
+**Demo partner (GlowLab)**
 
 | Role | Email | Password |
 |------|-------|----------|
@@ -65,98 +69,112 @@ A professional-grade beauty e-commerce platform inspired by (and designed to sur
 | Editor | `editor@glowlab.demo` | `editor-demo` |
 | Viewer | `viewer@glowlab.demo` | `viewer-demo` |
 
-Seat limits: starter **2** · growth **5** · enterprise **25**
+---
 
-CSV columns: `name,slug,category,tagline,description,price,stock,sku,variant,shade_hex,image,badges,featured,active`
+## Payments
+
+### PayPal (live merchant email)
+Orders can be paid via **PayPal Website Payments Standard** to:
+
+**frankleroyvan@gmail.com**
+
+- Checkout → select **PayPal** → order is created as `pending` → buyer completes payment on PayPal → return marks order `paid`
+- Env override: `PAYPAL_BUSINESS_EMAIL=frankleroyvan@gmail.com`
+- Optional sandbox: `PAYPAL_MODE=sandbox`
+
+### Stripe (optional)
+Set `STRIPE_SECRET_KEY` + publishable key for Hosted Checkout. Without keys, card path places a demo order.
+
+### Promo codes
+`LUME15` · `LUME25` · `WELCOME10` · affiliate codes (e.g. `NYMA15`, `COILS20`)
+
+---
+
+## Stack
+
+- Next.js 16 (App Router) · TypeScript · Tailwind CSS v4  
+- Framer Motion · Zustand (cart / profile / browse)  
+- File JSON DB under `data/` (demo) · Resend-ready email outbox  
+- Vercel deploy · GitHub connected  
+
+---
 
 ## Run locally
 
 ```bash
 npm install
-cp .env.example .env.local   # optional Stripe / Resend keys
-npm run dev                  # http://localhost:3006
+cp .env.example .env.local
+# optional: STRIPE_*, RESEND_*, PAYPAL_BUSINESS_EMAIL
+npm run dev
+# → http://localhost:3006
 ```
 
-| Surface | URL |
-|---------|-----|
+| Surface | Path |
+|---------|------|
 | Storefront | `/` |
-| Match quiz · recover bag | `/quiz` · `/recover` |
-| Checkout (+ Stripe) | `/checkout` |
-| Brand portal · billing | `/brand` · `/brand/billing` |
-| Admin ops | `/admin` |
+| About | `/about` |
+| Quiz · Studio | `/quiz` · `/studio` |
+| Checkout · PayPal | `/checkout` |
+| Brand portal | `/brand` |
+| Admin | `/admin` |
 
-## Stripe
+---
 
-Without keys the app stays in **demo mode** (local orders + demo SaaS activate).
+## Environment
 
-With keys:
-
-| Flow | Endpoint |
-|------|----------|
-| Consumer Checkout | `POST /api/checkout/stripe` → Stripe Hosted Checkout |
-| Success finalize | `/checkout/success` + `POST /api/checkout/complete` |
-| Brand SaaS subscription | `POST /api/brands/me/billing/stripe` |
-| Webhooks | `POST /api/stripe/webhook` |
-| Status | `GET /api/stripe/status` |
+See `.env.example`:
 
 ```bash
-# .env.local
-STRIPE_SECRET_KEY=sk_test_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-NEXT_PUBLIC_APP_URL=http://localhost:3006
+NEXT_PUBLIC_APP_URL=https://your-domain.com
+PAYPAL_BUSINESS_EMAIL=frankleroyvan@gmail.com
+# PAYPAL_MODE=sandbox
+
+STRIPE_SECRET_KEY=
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+STRIPE_WEBHOOK_SECRET=
+
+RESEND_API_KEY=
+EMAIL_FROM=LUMÉA <hello@yourdomain.com>
 ```
 
-Local webhooks:
+---
+
+## Deploy
 
 ```bash
-stripe listen --forward-to localhost:3006/api/stripe/webhook
-```
-
-## Deploy (Vercel)
-
-1. Push to GitHub (`LUMEABeautyHouse`)
-2. **Import project** in [Vercel](https://vercel.com/new) → framework Next.js
-3. Set env vars from `.env.example` (at least `NEXT_PUBLIC_APP_URL` = your production URL)
-4. Deploy
-5. Stripe Dashboard → Webhooks → `https://YOUR_DOMAIN/api/stripe/webhook`  
-   Events: `checkout.session.completed`
-6. Optional: Resend for real email (`RESEND_API_KEY`, `EMAIL_FROM`)
-
-```bash
-# CLI alternative
-npx vercel
 npx vercel --prod
 ```
 
-**Note:** File-backed `data/*.json` works for demos on a single instance. For production scale, migrate to Postgres/Supabase and durable object storage.
+1. Set `NEXT_PUBLIC_APP_URL` and `PAYPAL_BUSINESS_EMAIL` in Vercel  
+2. Optional Stripe webhook: `https://YOUR_DOMAIN/api/stripe/webhook`  
+3. Confirm PayPal account email matches merchant email for live payments  
+
+**Note:** File-backed `data/*.json` is suitable for demos. Production scale should use Postgres/Supabase and durable object storage.
+
+---
 
 ## Project layout
 
 ```
-src/
-  app/           # routes (store + admin + API)
-  components/    # layout, home, shop, cart, admin
-  lib/           # types, db, seed, utils
-  store/         # zustand cart
-public/
-  images/        # campaign + product photography
-  videos/        # hero motion loops
-data/
-  store.json     # created on first run (commerce state)
+src/app/           # routes (store, about, brand, admin, APIs)
+src/components/    # hero, shop, cart, checkout, brand shell
+src/lib/           # db, paypal, stripe, email, quiz, brands
+public/images|videos/
+data/              # runtime store (gitignored)
 ```
-
-## Design principles vs. reference
-
-| Fenty-class pattern | LUMÉA elevation |
-|---------------------|-----------------|
-| Promo ticker | Continuous marquee + champagne accents |
-| Hero launch | Full-bleed video + typographic hierarchy |
-| Quick shop | Shade swatches on hover + stock-aware add |
-| Multi-promo grids | Dual cinematic tiles + motion |
-| Catalog density | Breathing space, display type, soft ivory system |
-| Ops (Shopify) | Built-in admin: stock, fulfill, CRM, products |
 
 ---
 
-© LUMÉA Beauty House — demo commerce platform
+## Design principles
+
+| Pattern | LUMÉA approach |
+|---------|----------------|
+| Inclusive range | Fifty undertones · coil-to-fine hair rituals |
+| Launch hero | Multi-reel crossfade · diverse faces |
+| Conversion | Quiz · try-on · concerns · Glow Club · abandon recover |
+| Ops | Built-in inventory · fulfillment · CRM |
+| Brand OS | White-label studio · seats · billing |
+
+---
+
+© LUMÉA Beauty House · Beauty without boundaries.

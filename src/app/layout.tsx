@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     template: "%s · LUMÉA",
   },
   description:
-    "LUMÉA is an inclusive luxury beauty house. Fifty foundation shades, clinical skincare, live Mirror Studio try-on, and hair rituals for every texture.",
+    "LUMÉA Beauty House — inclusive luxury makeup, skin, and hair for every undertone. Fifty foundation shades, Mirror Studio try-on, clinical care, and quiet luxury. Pay securely with PayPal.",
   applicationName: "LUMÉA",
   authors: [{ name: "LUMÉA Beauty House" }],
   creator: "LUMÉA Beauty House",

@@ -14,12 +14,20 @@ export function getStripe(): Stripe | null {
   });
 }
 
-export function appUrl() {
+export function appUrl(reqUrl?: string) {
   if (process.env.NEXT_PUBLIC_APP_URL) {
     return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
   }
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL.replace(/\/$/, "")}`;
+  }
+  if (reqUrl) {
+    try {
+      const u = new URL(reqUrl);
+      return `${u.protocol}//${u.host}`;
+    } catch {
+      /* fallthrough */
+    }
   }
   return "http://localhost:3006";
 }
