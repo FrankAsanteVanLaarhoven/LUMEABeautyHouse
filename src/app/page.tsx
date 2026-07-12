@@ -13,6 +13,7 @@ import {
   DiscoveryStrip,
   TrustBar,
 } from "@/components/home/DiscoveryStrip";
+import { LuxuryExperiences } from "@/components/home/LuxuryExperiences";
 import { RecentlyViewed } from "@/components/shop/RecentlyViewed";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +24,7 @@ export default async function HomePage() {
     <>
       <Hero />
       <TrustBar />
+      <LuxuryExperiences />
       <DiscoveryStrip />
       <CampaignGallery />
       <SkinCommunity />

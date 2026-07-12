@@ -43,8 +43,20 @@ export default function BrandsDirectoryPage() {
             Like the great department stores — Selfridges, Fenwick, Harrods,
             House of Fraser — every beauty house has a floor and a confession.
             Search brands, walk the A–Z directory, or enter a floor to shop
-            only their edit.
+            only their edit. Featured concessions are paid placements brands
+            buy to sit on the homepage and directory.
           </p>
+          <div className="mt-6 flex flex-wrap gap-3 text-[11px] uppercase tracking-[0.12em]">
+            <Link href="/live" className="text-champagne hover:underline">
+              Live rooms →
+            </Link>
+            <Link href="/concierge" className="text-ivory/60 hover:underline">
+              Concierge →
+            </Link>
+            <Link href="/brand/billing" className="text-ivory/60 hover:underline">
+              Brands: buy a floor →
+            </Link>
+          </div>
           <form
             className="mt-10 flex max-w-xl border border-ivory/25 bg-ivory/5"
             onSubmit={(e) => e.preventDefault()}

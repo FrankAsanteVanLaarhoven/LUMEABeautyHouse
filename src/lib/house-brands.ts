@@ -19,6 +19,10 @@ export interface HouseBrand {
   /** Campaign image */
   image: string;
   featured?: boolean;
+  /** Paid concession / homepage placement */
+  sponsored?: boolean;
+  /** Monthly floor rent (display) */
+  floorFee?: number;
   /** A–Z letter for directory */
   letter: string;
 }
@@ -48,6 +52,8 @@ export const HOUSE_BRANDS: HouseBrand[] = [
     specialties: ["makeup", "hair"],
     image: "/images/campaign-glow.jpg",
     featured: true,
+    sponsored: true,
+    floorFee: 149,
     letter: "G",
   },
   {
@@ -61,6 +67,8 @@ export const HOUSE_BRANDS: HouseBrand[] = [
     specialties: ["makeup", "tools"],
     image: "/images/campaign-gloss.jpg",
     featured: true,
+    sponsored: true,
+    floorFee: 299,
     letter: "A",
   },
   {
@@ -87,6 +95,8 @@ export const HOUSE_BRANDS: HouseBrand[] = [
     specialties: ["hair", "sets"],
     image: "/images/campaign-hair.jpg",
     featured: true,
+    sponsored: true,
+    floorFee: 249,
     letter: "C",
   },
   {
@@ -100,6 +110,7 @@ export const HOUSE_BRANDS: HouseBrand[] = [
     specialties: ["skin", "makeup"],
     image: "/images/campaign-asian.jpg",
     featured: true,
+    floorFee: 199,
     letter: "S",
   },
   {
@@ -113,6 +124,8 @@ export const HOUSE_BRANDS: HouseBrand[] = [
     specialties: ["makeup", "body"],
     image: "/images/campaign-latina.jpg",
     featured: true,
+    sponsored: true,
+    floorFee: 249,
     letter: "C",
   },
   {

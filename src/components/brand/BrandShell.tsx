@@ -66,6 +66,12 @@ const allLinks = [
     icon: CreditCard,
     perm: "dashboard:read" as const,
   },
+  {
+    href: "/brand/analytics",
+    label: "Analytics",
+    icon: LayoutDashboard,
+    perm: "dashboard:read" as const,
+  },
 ];
 
 export function BrandShell({

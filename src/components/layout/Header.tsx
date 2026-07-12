@@ -42,10 +42,12 @@ export function Header() {
   ];
   const discoverNav = [
     { href: "/quiz", label: t("nav.quiz") },
+    { href: "/concierge", label: "Concierge" },
+    { href: "/live", label: "Live" },
+    { href: "/private-sale", label: "Private Sale" },
+    { href: "/journal", label: "Journal" },
     { href: "/concerns", label: t("nav.concerns") },
-    { href: "/routines", label: t("nav.routines") },
     { href: "/gifts", label: t("nav.gifts") },
-    { href: "/community", label: t("nav.community") },
     { href: "/studio", label: t("nav.studio") },
     { href: "/tutorials", label: t("nav.tutorials") },
   ];

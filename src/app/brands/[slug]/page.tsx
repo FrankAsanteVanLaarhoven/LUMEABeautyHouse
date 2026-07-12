@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getHouseBrand } from "@/lib/house-brands";
 import { listProducts } from "@/lib/db";
 import { ProductCard } from "@/components/shop/ProductCard";
+import { FloorViewTracker } from "@/components/brands/FloorViewTracker";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,7 @@ export default async function BrandFloorPage({
 
   return (
     <div>
+      <FloorViewTracker brandSlug={brand.slug} />
       <section className="relative min-h-[42vh] overflow-hidden bg-ink text-ivory md:min-h-[50vh]">
         <Image
           src={brand.image}
@@ -60,6 +62,12 @@ export default async function BrandFloorPage({
           <p className="mt-3 max-w-xl text-lg text-champagne md:text-xl">
             {brand.tagline}
           </p>
+          {brand.sponsored && (
+            <p className="mt-3 text-[10px] uppercase tracking-[0.16em] text-ivory/50">
+              Sponsored concession
+              {brand.floorFee ? ` · from $${brand.floorFee}/mo` : ""}
+            </p>
+          )}
         </div>
       </section>
 
