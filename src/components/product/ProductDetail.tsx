@@ -22,8 +22,10 @@ import type { MessageKey } from "@/lib/i18n/messages";
 import { SocialShare } from "@/components/social/SocialShare";
 import { reviewsForProduct } from "@/lib/reviews";
 import { COMPLETE_LOOK } from "@/lib/bundles";
+import { resolveProductBrand } from "@/lib/house-brands";
 
 export function ProductDetail({ product }: { product: Product }) {
+  const houseBrand = resolveProductBrand(product);
   const { t, formatPrice } = useT();
   const [imageIdx, setImageIdx] = useState(0);
   const [variantId, setVariantId] = useState(product.variants[0]?.id);
@@ -176,7 +178,13 @@ export function ProductDetail({ product }: { product: Product }) {
             </span>
           ))}
         </div>
-        <h1 className="mt-4 font-display text-4xl tracking-tight md:text-5xl lg:text-6xl">
+        <Link
+          href={`/brands/${houseBrand.slug}`}
+          className="mt-2 inline-block text-[10px] font-medium uppercase tracking-[0.16em] text-champagne hover:underline"
+        >
+          {houseBrand.name} · {houseBrand.floor}
+        </Link>
+        <h1 className="mt-2 font-display text-4xl tracking-tight md:text-5xl lg:text-6xl">
           {product.name}
         </h1>
         <p className="mt-3 text-muted">{product.tagline}</p>

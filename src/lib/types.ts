@@ -47,6 +47,11 @@ export interface Product {
   active: boolean;
   /** Multi-tenant: owning brand (null / "lumea" = house brand) */
   brandId?: string | null;
+  /**
+   * Department-store brand floor slug (Selfridges-style):
+   * lumea, atelier-noir, coil-atelier, casa-luz, etc.
+   */
+  houseBrand?: string | null;
   createdAt: string;
   updatedAt: string;
 }

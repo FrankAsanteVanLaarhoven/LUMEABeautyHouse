@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  Building2,
   Gift,
   HeartPulse,
   Layers,
@@ -27,6 +28,13 @@ const CARDS = [
     title: "Rituals",
     body: "AM glass, PM restore, coils, repair — add the full stack.",
     cta: "Build routine",
+  },
+  {
+    href: "/brands",
+    icon: Building2,
+    title: "Brand floors",
+    body: "Selfridges-style directory — search LUMÉA, Coil Atelier, Casa Luz & more.",
+    cta: "Browse houses",
   },
   {
     href: "/concerns",

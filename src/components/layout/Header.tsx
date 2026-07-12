@@ -37,6 +37,7 @@ export function Header() {
     { href: "/shop?category=body", label: t("nav.body") },
     { href: "/shop?category=tools", label: t("nav.tools") },
     { href: "/shop?category=sets", label: t("nav.sets") },
+    { href: "/brands", label: "Brands" },
     { href: "/quiz", label: t("nav.quiz") },
     { href: "/concerns", label: t("nav.concerns") },
     { href: "/routines", label: t("nav.routines") },

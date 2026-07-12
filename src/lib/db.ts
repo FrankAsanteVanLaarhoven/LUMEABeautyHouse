@@ -71,9 +71,14 @@ export async function listProducts(opts?: {
   activeOnly?: boolean;
   q?: string;
   brandId?: string | null;
+  /** Department-store brand floor slug */
+  houseBrand?: string | null;
   /** When true, only house catalogue (no brandId or lumea) */
   houseOnly?: boolean;
 }) {
+  const { brandSlugForProduct, getHouseBrand, searchBrands } = await import(
+    "./house-brands"
+  );
   const db = await ensureDb();
   let items = [...db.products];
   if (opts?.activeOnly !== false) items = items.filter((p) => p.active);
@@ -84,6 +89,10 @@ export async function listProducts(opts?: {
   if (opts?.brandId) {
     items = items.filter((p) => p.brandId === opts.brandId);
   }
+  if (opts?.houseBrand) {
+    const hb = opts.houseBrand.toLowerCase();
+    items = items.filter((p) => brandSlugForProduct(p) === hb);
+  }
   if (opts?.houseOnly) {
     items = items.filter(
       (p) => !p.brandId || p.brandId === "brand-lumea" || p.brandId === "lumea"
@@ -91,12 +100,20 @@ export async function listProducts(opts?: {
   }
   if (opts?.q) {
     const q = opts.q.toLowerCase();
-    items = items.filter(
-      (p) =>
+    // Brand-name hits → include all products on those brand floors
+    const brandHits = searchBrands(q).map((b) => b.slug);
+    items = items.filter((p) => {
+      const brandSlug = brandSlugForProduct(p);
+      const brand = getHouseBrand(brandSlug);
+      return (
         p.name.toLowerCase().includes(q) ||
         p.tagline.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q)
-    );
+        p.description.toLowerCase().includes(q) ||
+        brandSlug.includes(q) ||
+        brand?.name.toLowerCase().includes(q) ||
+        brandHits.includes(brandSlug)
+      );
+    });
   }
   return items.sort(
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()

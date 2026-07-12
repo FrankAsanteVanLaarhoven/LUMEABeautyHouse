@@ -42,7 +42,8 @@ LUMÉA exists for the full spectrum of human skin and hair. Too many shelves sti
 
 ### Consumer storefront
 - Crossfading **hero reels** (deep brown · Asian · Hispanic · blonde · original glam)
-- Shop by category, concern, gift finder, routines, match quiz
+- **Brand floors** (`/brands`) — Selfridges / Harrods-style A–Z directory with brand confessions; shop by house
+- Shop by category, brand, concern, gift finder, routines, match quiz
 - PDP: shades, stock, reviews by skin/hair, complete-the-look, subscribe & save
 - Cart with free-shipping progress, abandon recovery, Glow Club loyalty
 - **Checkout:** PayPal (`frankleroyvan@gmail.com`), Stripe (optional keys), LUMÉA Wallet

@@ -34,6 +34,7 @@ export function Footer() {
     {
       title: "Discover",
       links: [
+        { href: "/brands", label: "Brand floors" },
         { href: "/quiz", label: t("nav.quiz") },
         { href: "/routines", label: t("nav.routines") },
         { href: "/concerns", label: t("nav.concerns") },

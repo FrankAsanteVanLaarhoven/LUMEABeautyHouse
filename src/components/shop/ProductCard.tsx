@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import { useT } from "@/lib/i18n/useT";
 import type { MessageKey } from "@/lib/i18n/messages";
 import { ListPlus } from "lucide-react";
+import { resolveProductBrand } from "@/lib/house-brands";
 
 export function ProductCard({
   product,
@@ -25,6 +26,7 @@ export function ProductCard({
   const outOfStock = product.variants.every((v) => v.stock <= 0);
   const comingSoon = product.badges.includes("coming-soon") || outOfStock;
   const onList = primary ? isInList(primary.id) : false;
+  const brand = resolveProductBrand(product);
 
   return (
     <motion.article
@@ -86,6 +88,12 @@ export function ProductCard({
       </Link>
 
       <div className="mt-4 flex flex-col gap-1 px-0.5">
+        <Link
+          href={`/brands/${brand.slug}`}
+          className="text-[10px] font-medium uppercase tracking-[0.14em] text-champagne hover:underline"
+        >
+          {brand.name}
+        </Link>
         <div className="flex items-start justify-between gap-2">
           <Link href={`/product/${product.slug}`}>
             <h3 className="text-sm font-medium leading-snug tracking-tight">
