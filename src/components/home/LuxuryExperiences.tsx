@@ -32,10 +32,10 @@ export function LuxuryExperiences() {
             <CalendarHeart className="text-champagne" size={20} strokeWidth={1.5} />
             <h3 className="mt-4 font-display text-2xl">Beauty Concierge</h3>
             <p className="mt-2 text-sm text-muted">
-              Book a video session — shade match, glam, coils, gifts.
+              1:1 or group live streams with verified experts — wedding parties, paid sessions, product commissions.
             </p>
             <span className="mt-5 inline-block text-[11px] uppercase tracking-[0.12em] underline decoration-sand group-hover:decoration-ink">
-              Book →
+              Book live →
             </span>
           </Link>
 
